@@ -13,17 +13,17 @@ using namespace std;
 using namespace exploringBB;
 
 
-//P25317::P25317(int rst_pin, int cs_pin, char *rx, char *tx)
-P25317::P25317(int rst_pin, int cs_pin)
+P25317::P25317(int rst_pin, int cs_pin, int dat_ctl_pin)
 {
   rst = new GPIO(rst_pin);
   cs = new GPIO(cs_pin);
+  dat_ctl = new GPIO(dat_ctl_pin);
+  rx = new char[MAX_BUF_LEN];
+  tx = new char[MAX_BUF_LEN];
   speed = 1000000;
   bits = 8;
   mode = 3;
-  rx = new char[MAX_BUF_LEN];
-  tx = new char[MAX_BUF_LEN];
-  // this -> tx = tx;
+  // open and configure the spi handle
   if ((fd = open(SPI_PATH, O_RDWR)) < 0)
     {
       perror("SPI Error: Can't open device");
@@ -32,14 +32,23 @@ P25317::P25317(int rst_pin, int cs_pin)
   printf("fd=%d\n", fd);
 }
 
+P25317::~P25317()
+{
+  delete rst;
+  delete cs;
+  delete dat_ctl;
+  delete rx;
+  delete tx;
+}
+
 void P25317::init_display(void)
 {
   // reset and CS are outputs
   rst -> setDirection(OUTPUT);
   cs -> setDirection(OUTPUT);
+  dat_ctl -> setDirection(OUTPUT);
   // keep the reset asserted
   enable_display(0);
-  // open and configure the spi handle
 }
 
 void P25317::init_spi(void)
@@ -82,31 +91,50 @@ void P25317::init_spi(void)
 
 void P25317::enable_display(int en)
 {
+  char config[] =
+    {
+      0xA8, 0x3F, // Set MUX
+      0xD3, 0x00, // Set Display Offset
+      0x40,       // Set Display Start line
+      0xA0,       // Set Segment Remap (A0 or A1)
+      0xC0,       // Set COM Output Scan Dir (C0 or C8)
+      0xDA, 0x02, // Set COM Pins HW Config
+      0x81, 0x7F, // Set Contrast
+      0xA4,       // Disable Entire Display On
+      0xA6,       // Set Normal Display
+      0xD5, 0x80, // Set OSC Freq
+      0x8D, 0x14, // Enable Charge Pump
+      0xAF,       // Display On
+    };
+  
   if (en)
     {
-      //deassert reset line
+      // deassert reset line
       rst -> setValue(HIGH);
-      //NOTE test CS pin as well
-      cs -> setValue(HIGH);
+      // send various configuration commands
+      send_ctl_cmd(config, sizeof(config));
     }
   else
     {
-      //assert reset line
+      // assert reset line
       rst -> setValue(LOW);
-      //NOTE test CS pin as well
-      cs -> setValue(LOW);
     }
 }
 
 void P25317::toggle_10_x(void)
 {
+  // just toggle all GPIOs and send dummy data
   for (int i = 0; i < 10; i++)
     {
-      enable_display(1);
+      rst -> setValue(HIGH);
+      cs -> setValue(HIGH);
+      dat_ctl -> setValue(HIGH);
       usleep(500000);
-      enable_display(0);
+      rst -> setValue(LOW);
+      cs -> setValue(LOW);
+      dat_ctl -> setValue(LOW);
       usleep(500000);
-
+      
       tx[0] = i;
       if (spi_transfer(1) == -1)
 	{
@@ -118,13 +146,18 @@ void P25317::toggle_10_x(void)
 
 int P25317::spi_transfer(int len)
 {
-  // create local buffers for ioctl...
-  // these pointers need to be last thing pushed to stack
-  //char tx_buf[1];
-  char rx_buf[5];
+  /* VooDoo alert
+     For some reason, there needs to be a 
+     char array declared in order for the
+     spi_ioc_transfer structure to work
+     properly... probably has something to
+     do with alignment on the stack.  For
+     now, we'll just roll with the voodoo,
+     but at some point it would be worthwhile
+     to figure out what exactly is going on */
+  char voodoo_buf[5];
 
   // create and configure transfer struct
-  //struct spi_ioc_transfer transfer;
   spi_ioc_transfer transfer;
   transfer.tx_buf = (unsigned long)tx;
   transfer.rx_buf = (unsigned long)rx;
@@ -143,46 +176,107 @@ int P25317::spi_transfer(int len)
   return status;
 }
 
-P25317::~P25317()
+void P25317::send_ctl_cmd(char *buf, int buf_len)
 {
-  delete rst;
-  delete cs;
+  // deassert data pin
+  dat_ctl -> setValue(DAT_CTL_CMD);
+  // drop CS
+  cs -> setValue(LOW);
+  // send the message
+  for (int i = 0; i < buf_len; i++)
+    {
+      tx[0] = buf[i];
+      spi_transfer(1);
+    }
+  // raise CS
+  cs -> setValue(HIGH);
+}
+
+void P25317::send_dat_cmd(char *buf, int buf_len)
+{
+  // assert data pin
+  dat_ctl -> setValue(DAT_CTL_DATA);
+  // drop CS
+  cs -> setValue(LOW);
+  // send the message
+  for (int i = 0; i < buf_len; i++)
+    {
+      tx[0] = buf[i];
+      spi_transfer(1);
+    }
+  // raise CS
+  cs -> setValue(HIGH);
+}
+
+void P25317::send_test_screen(char screen)
+{
+  char buf_ff[32], buf_00[32];
+  for (int i = 0; i < 32; i++)
+    {
+      buf_ff[i] = 0xff;
+      buf_00[i] = 0x00;
+    }
+  if (screen)
+    {
+      for (int i = 0; i < 8; i++)
+       	{
+  	  for (int j = 0; j < 4; j++)
+  	    {
+  	      if (j % 2)
+  		{
+  		  send_dat_cmd(buf_ff, sizeof(buf_ff));
+  		}
+  	      else
+  		{
+  		  send_dat_cmd(buf_00, sizeof(buf_00));
+  		}
+  	    }
+	}
+    }
+  else
+    {
+      for (int i = 0; i < 8; i++)
+       	{
+  	  for (int j = 0; j < 4; j++)
+  	    {
+  	      if (j % 2)
+  		{
+  		  send_dat_cmd(buf_00, sizeof(buf_00));
+  		}
+  	      else
+  		{
+  		  send_dat_cmd(buf_ff, sizeof(buf_ff));
+  		}
+  	    }
+	}
+    }
 }
 
 
 int main()
 {
-  // char tx[MAX_BUF_LEN], rx[MAX_BUF_LEN];
-  //  P25317 my_disp(59, 58, rx, tx);
-  P25317 my_disp(59, 58);
+  P25317 my_disp(59, 58, 57); // 59:rst_pin, 58:cs_pin, 57:dat_ctl_pin
   
   my_disp.init_display();
   my_disp.init_spi();
-  my_disp.toggle_10_x();
+  my_disp.enable_display(DISP_ENABLE);
+  my_disp.send_test_screen(1);
+  usleep(500000);
+  my_disp.send_test_screen(0);
+  usleep(500000);
+  my_disp.send_test_screen(1);
+  usleep(500000);
+  my_disp.send_test_screen(0);
+  usleep(500000);
+  my_disp.send_test_screen(1);
+  usleep(500000);
+  my_disp.send_test_screen(0);
+  usleep(500000);
+  my_disp.send_test_screen(1);
+  usleep(500000);
+  my_disp.send_test_screen(0);
+  usleep(500000);
 
-  /*
-  // basic output example
-  outGPIO.setDirection(OUTPUT);
-  for (int i = 0; i < 10; i++)
-    {
-      outGPIO.setValue(HIGH);
-      usleep(500000);
-      outGPIO.setValue(LOW);
-      usleep(500000);
-    }
 
-  // basic input example
-  inGPIO.setDirection(INPUT);
-  cout << "The Value of the input is: "<< inGPIO.getValue() << endl;
-
-  // fast write 100 times
-  outGPIO.streamOpen();
-    for (int i = 0; i < 100; i++)
-      {
-	outGPIO.streamWrite(HIGH);
-	outGPIO.streamWrite(LOW);
-      }
-  outGPIO.streamClose();
-  */
   return 0;
 }
