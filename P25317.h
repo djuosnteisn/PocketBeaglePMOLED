@@ -13,6 +13,7 @@ using namespace exploringBB;
 #define DAT_CTL_CMD   LOW
 #define DISP_ENABLE   1
 #define DISP_DISABLE  0
+#define MAX_SPI_BUF 100
 
 class P25317
 {
@@ -29,6 +30,7 @@ class P25317
   void close_spi(void);
   void send_ctl_cmd(unsigned char *buf, int buf_len);
   void send_dat_cmd(unsigned char *buf, int buf_len);
+  void set_contrast(unsigned char lvl);
   void send_test_screen(char screen);
 
   ~P25317(); //destructor

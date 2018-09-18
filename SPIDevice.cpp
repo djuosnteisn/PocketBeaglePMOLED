@@ -35,7 +35,13 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/types.h>
+#ifdef __cplusplus /* if this is a C++ compiler, use C linkage */
+extern "C" {
+#endif
 #include <linux/spi/spidev.h>
+#ifdef __cplusplus /* if this is a C++ compiler, use C linkage */
+}
+#endif
 using namespace std;
 
 #define HEX(x) setw(2) << setfill('0') << hex << (int)(x)
@@ -104,7 +110,7 @@ unsigned char SPIDevice::readRegister(unsigned int registerAddress){
 	unsigned char send[2], receive[2];
 	memset(send, 0, sizeof send);
 	memset(receive, 0, sizeof receive);
-	send[0] = (unsigned char) (0x80 + registerAddress);
+	send[0] = (unsigned char) (0x80 | registerAddress);
 	this->transfer(send, receive, 2);
     //cout << "The value that was received is: " << (int) receive[1] << endl;
 	return receive[1];
@@ -114,7 +120,7 @@ unsigned char* SPIDevice::readRegisters(unsigned int number, unsigned int fromAd
 	unsigned char* data = new unsigned char[number];
 	unsigned char send[number+1], receive[number+1];
 	memset(send, 0, sizeof send);
-	send[0] =  (unsigned char) (0x80 + 0x40 + fromAddress); //set read bit and MB bit
+	send[0] =  (unsigned char) (0x80 | 0x40 | fromAddress); //set read bit and MB bit
 	this->transfer(send, receive, number+1);
 	memcpy(data, receive+1, number);  //ignore the first (address) byte in the array returned
 	return data;
@@ -138,7 +144,7 @@ int SPIDevice::writeRegister(unsigned int registerAddress, unsigned char value){
 	memset(receive, 0, sizeof receive);
 	send[0] = (unsigned char) registerAddress;
 	send[1] = value;
-	//cout << "The value that was written is: " << (int) send[1] << endl;
+	cout << "The value that was written is: " << (int) send[1] << endl;
 	this->transfer(send, receive, 2);
 	return 0;
 }

@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <stdint.h>
-#include <linux/spi/spidev.h>
 #include "P25317.h"
 #include "SPIDevice.h"
 
@@ -61,7 +60,7 @@ void P25317::enable_display(int en)
       0xA0,       // Set Segment Remap (A0 or A1)
       0xC0,       // Set COM Output Scan Dir (C0 or C8)
       0xDA, 0x02, // Set COM Pins HW Config
-      0x81, 0x7F, // Set Contrast
+      0x81, 0xFF, // Set Contrast
       0xA4,       // Disable Entire Display On
       0xA6,       // Set Normal Display
       0x20, 0x00, // Horizontal Addressing Mode
@@ -113,6 +112,18 @@ void P25317::send_dat_cmd(unsigned char *buf, int buf_len)
   cs->setValue(HIGH);
 }
 
+void P25317::set_contrast(unsigned char lvl)
+{
+  unsigned char temp[] =
+    {
+      (unsigned char)0x81,
+      lvl
+    };
+  send_ctl_cmd(temp, sizeof(temp));
+
+  //  spi->writeRegister(0x81, lvl);
+}
+
 void P25317::send_test_screen(char screen)
 {
   unsigned char buf_ff[128], buf_00[128];
@@ -148,27 +159,45 @@ void P25317::send_test_screen(char screen)
 int main()
 {
   P25317 my_disp(59, 58, 57); // 59:rst_pin, 58:cs_pin, 57:dat_ctl_pin
+  int i = 0, contrast = 0, dir = 0;
   
   my_disp.init_display();
   my_disp.init_spi();
   usleep(10000);
   my_disp.enable_display(DISP_ENABLE);
-  usleep(500000);
-  my_disp.send_test_screen(1);
-  usleep(500000);
-  my_disp.send_test_screen(0);
-  usleep(500000);
-  my_disp.send_test_screen(1);
-  usleep(500000);
-  my_disp.send_test_screen(0);
-  usleep(500000);
-  my_disp.send_test_screen(1);
-  usleep(500000);
-  my_disp.send_test_screen(0);
-  usleep(500000);
-  my_disp.send_test_screen(1);
-  usleep(500000);
-  my_disp.send_test_screen(0);
-  my_disp.close_spi();
+  while (1)
+    {
+      if (i)
+	{
+	  i = 0;
+	  my_disp.send_test_screen(0);
+	}
+      else
+	{
+	  i = 1;
+	  my_disp.send_test_screen(1);
+	}
+
+      if (dir)
+      	{
+      	  contrast += 16;
+      	  if (contrast > 255)
+      	    {
+      	      contrast = 255;
+      	      dir = 0;
+      	    }
+      	}
+      else
+      	{
+      	  contrast -= 16;
+      	  if (contrast < 0)
+      	    {
+      	      contrast = 0;
+      	      dir = 1;
+      	    }
+      	}
+      my_disp.set_contrast(contrast);
+      usleep(500000);
+    }
   return 0;
 }
