@@ -1,7 +1,6 @@
 #ifndef P25317_H_
 #define P25317_H_
 #include "GPIO.h"
-#include "SPIDevice.h"
 
 using namespace exploringBB;
 
@@ -19,7 +18,6 @@ class P25317
 {
  private:
   GPIO *rst, *cs, *dat_ctl;
-  SPIDevice *spi;
 
  public:
   P25317(int rst_pin, int cs_pin, int dat_ctl_pin); //constructor

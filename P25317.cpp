@@ -5,7 +5,13 @@
 #include <sys/ioctl.h>
 #include <stdint.h>
 #include "P25317.h"
-#include "SPIDevice.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "spi.h"
+#ifdef __cplusplus
+}
+#endif
 
 using namespace std;
 using namespace exploringBB;
@@ -16,7 +22,6 @@ P25317::P25317(int rst_pin, int cs_pin, int dat_ctl_pin)
   rst = new GPIO(rst_pin);
   cs = new GPIO(cs_pin);
   dat_ctl = new GPIO(dat_ctl_pin);
-  spi = new SPIDevice(SPI_BUS, SPI_DEV);
 }
 
 P25317::~P25317()
@@ -24,7 +29,6 @@ P25317::~P25317()
   delete rst;
   delete cs;
   delete dat_ctl;
-  delete spi;
 }
 
 void P25317::init_display(void)
@@ -39,15 +43,12 @@ void P25317::init_display(void)
 
 void P25317::init_spi(void)
 {
-  spi->setSpeed(SPI_SPEED);
-  spi->setMode(SPIDevice::MODE3);
-  spi->setBitsPerWord(SPI_BITS);
-  spi->open();
+  spi_open("/dev/spidev1.0");
 }
 
 void P25317::close_spi(void)
 {
-  spi->close();
+  spi_close();
 }
 
 void P25317::enable_display(int en)
@@ -93,7 +94,7 @@ void P25317::send_ctl_cmd(unsigned char *buf, int buf_len)
   // drop CS
   cs->setValue(LOW);
   // send the message
-  spi->transfer(buf, dummy, buf_len);
+  spi_transfer(buf, dummy, buf_len);
   // raise CS
   cs->setValue(HIGH);
 }
@@ -107,7 +108,7 @@ void P25317::send_dat_cmd(unsigned char *buf, int buf_len)
   // drop CS
   cs->setValue(LOW);
   // send the message
-  spi->transfer(buf, dummy, buf_len);
+  spi_transfer(buf, dummy, buf_len);
   // raise CS
   cs->setValue(HIGH);
 }
@@ -120,8 +121,6 @@ void P25317::set_contrast(unsigned char lvl)
       lvl
     };
   send_ctl_cmd(temp, sizeof(temp));
-
-  //  spi->writeRegister(0x81, lvl);
 }
 
 void P25317::send_test_screen(char screen)
