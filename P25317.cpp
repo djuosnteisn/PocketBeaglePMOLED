@@ -59,8 +59,8 @@ void P25317::enable_display(int en)
       0xD3, 0x00, // Set Display Offset
       0x40,       // Set Display Start line
       0xA0,       // Set Segment Remap (A0 or A1)
-      0xC0,       // Set COM Output Scan Dir (C0 or C8)
-      0xDA, 0x02, // Set COM Pins HW Config
+      0xC8,       // Set COM Output Scan Dir (C0 or C8)
+      //      0xDA, 0x02, // Set COM Pins HW Config
       0x81, 0xFF, // Set Contrast
       0xA4,       // Disable Entire Display On
       0xA6,       // Set Normal Display
@@ -117,7 +117,7 @@ void P25317::set_contrast(unsigned char lvl)
 {
   unsigned char temp[] =
     {
-      (unsigned char)0x81,
+      0x81,
       lvl
     };
   send_ctl_cmd(temp, sizeof(temp));
@@ -125,8 +125,8 @@ void P25317::set_contrast(unsigned char lvl)
 
 void P25317::send_test_screen(char screen)
 {
-  unsigned char buf_ff[128], buf_00[128];
-  for (int i = 0; i < 128; i++)
+  unsigned char buf_ff[16], buf_00[16];
+  for (int i = 0; i < sizeof(buf_ff); i++)
     {
       buf_ff[i] = 0xff;
       buf_00[i] = 0x00;
@@ -136,21 +136,55 @@ void P25317::send_test_screen(char screen)
     {
       for (int i = 0; i < 8; i++)
        	{
-	  if (i % 2)
-	    send_dat_cmd(buf_ff, sizeof(buf_ff));
-	  else
-	    send_dat_cmd(buf_00, sizeof(buf_00));
-	}
+ 	  for (int j = 0; j < 8; j++)
+	    {
+	      if (i % 2)
+		{
+		  if (j % 2)
+		    send_dat_cmd(buf_ff, sizeof(buf_ff));
+		  else
+		    send_dat_cmd(buf_00, sizeof(buf_00));
+		}
+	      else
+		{
+		  if (j % 2)
+		    send_dat_cmd(buf_00, sizeof(buf_00));
+		  else
+		    send_dat_cmd(buf_ff, sizeof(buf_ff));
+		}
+	    }
+      	  // if (i % 2)
+  	  //   send_dat_cmd(buf_ff, sizeof(buf_ff));
+  	  // else
+  	  //   send_dat_cmd(buf_00, sizeof(buf_00));
+  	}
     }
   else
     {
       for (int i = 0; i < 8; i++)
        	{
-	  if (i % 2)
-	    send_dat_cmd(buf_00, sizeof(buf_00));
-	  else
-	    send_dat_cmd(buf_ff, sizeof(buf_ff));
-	}
+ 	  for (int j = 0; j < 8; j++)
+	    {
+	      if (i % 2)
+		{
+		  if (j % 2)
+		    send_dat_cmd(buf_00, sizeof(buf_00));
+		  else
+		    send_dat_cmd(buf_ff, sizeof(buf_ff));
+		}
+	      else
+		{
+		  if (j % 2)
+		    send_dat_cmd(buf_ff, sizeof(buf_ff));
+		  else
+		    send_dat_cmd(buf_00, sizeof(buf_00));
+		}
+	    }
+      	  // if (i % 2)
+  	  //   send_dat_cmd(buf_00, sizeof(buf_00));
+  	  // else
+  	  //   send_dat_cmd(buf_ff, sizeof(buf_ff));
+  	}
     }
 }
 
@@ -162,20 +196,20 @@ int main()
   
   my_disp.init_display();
   my_disp.init_spi();
-  usleep(10000);
+  usleep(1000000);
   my_disp.enable_display(DISP_ENABLE);
   while (1)
     {
       if (i)
-	{
-	  i = 0;
-	  my_disp.send_test_screen(0);
-	}
+      	{
+      	  i = 0;
+      	  my_disp.send_test_screen(0);
+      	}
       else
-	{
-	  i = 1;
-	  my_disp.send_test_screen(1);
-	}
+      	{
+      	  i = 1;
+      	  my_disp.send_test_screen(1);
+      	}
 
       if (dir)
       	{
@@ -196,6 +230,7 @@ int main()
       	    }
       	}
       my_disp.set_contrast(contrast);
+
       usleep(500000);
     }
   return 0;
