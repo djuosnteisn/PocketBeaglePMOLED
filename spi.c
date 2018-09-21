@@ -34,13 +34,15 @@ extern "C" {
   static uint8_t mode = 3;
   static uint8_t bits = 8;
   static uint32_t speed = 1000000;
-  static uint16_t delay;
+  static uint16_t delay = 0;
+  static void update_mode(void);
+  static void update_bits(void);
+  static void update_speed(void);
+  static void update_delay(void);
 
   void spi_open(const char *dev_path)
   {
-    int ret;
-
-    /* these transfer params won't change */
+    /* initialize transfer params */
     tr.delay_usecs = delay;
     tr.speed_hz = speed;
     tr.bits_per_word = bits;
@@ -51,38 +53,14 @@ extern "C" {
     if (fd < 0)
       pabort("can't open device");
 
-    /*
-     * spi mode
-     */
-    ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
-    if (ret == -1)
-      pabort("can't set spi mode");
+    /* spi  mode */
+    update_mode();
 
-    ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
-    if (ret == -1)
-      pabort("can't get spi mode");
+    /* bits per word */
+    update_bits();
 
-    /*
-     * bits per word
-     */
-    ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
-    if (ret == -1)
-      pabort("can't set bits per word");
-
-    ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
-    if (ret == -1)
-      pabort("can't get bits per word");
-
-    /*
-     * max speed hz
-     */
-    ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-    if (ret == -1)
-      pabort("can't set max speed hz");
-
-    ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
-    if (ret == -1)
-      pabort("can't get max speed hz");
+    /* max speed hz */
+    update_speed();
   }
 
   void spi_close(void)
@@ -108,6 +86,88 @@ extern "C" {
   {
     return fd;
   }
+
+  void spi_set_mode(unsigned char new_mode)
+  {
+    // get new mode
+    if (new_mode < MAX_MODE && new_mode > MIN_MODE)
+      mode = new_mode;
+    // update driver
+    update_mode();
+
+  }
+  
+  unsigned char spi_get_mode(void)
+  {
+    return mode;
+  }
+  
+  void spi_set_bits(unsigned char new_bits)
+  {
+    // get new bits
+    if (new_bits < MAX_BITS && new_bits > MIN_BITS)
+      bits = new_bits;
+    // update driver
+    update_bits();
+  }
+  
+  unsigned char spi_get_bits(void)
+  {
+    return bits;
+  }
+  
+  void spi_set_speed(unsigned int new_speed)
+  {
+    // get new speed
+    if (new_speed < MAX_SPEED && new_speed > MIN_SPEED)
+      speed = new_speed;
+    // update driver
+    update_speed();
+  }
+  
+  unsigned int spi_get_speed(void)
+  {
+    return speed;
+  }
+
+  static void update_mode(void)
+  {
+    int ret;
+
+    ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
+    if (ret == -1)
+      pabort("can't set spi mode");
+    ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+    if (ret == -1)
+      pabort("can't get spi mode");
+  }
+  
+  static void update_bits(void)
+  {
+    int ret;
+    
+    ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
+    if (ret == -1)
+      pabort("can't set bits per word");
+
+    ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
+    if (ret == -1)
+      pabort("can't get bits per word");
+  }
+  
+  static void update_speed(void)
+  {
+    int ret;
+
+    ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+    if (ret == -1)
+      pabort("can't set max speed hz");
+
+    ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
+    if (ret == -1)
+      pabort("can't get max speed hz");
+  }
+
 
 #ifdef __cplusplus
 }
