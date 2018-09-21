@@ -40,24 +40,27 @@ extern "C" {
   static void update_speed(void);
   static void update_delay(void);
 
-  void spi_open(const char *dev_path)
+  void spi_init(const char *dev_path)
+  {
+    /* open device */
+    strncpy(device, dev_path, MAX_PATH_LEN);
+    fd = open(device, O_RDWR);
+    if (fd < 0)
+      pabort("can't open device");
+  }
+
+  void spi_open(void)
   {
     /* initialize transfer params */
     tr.delay_usecs = delay;
     tr.speed_hz = speed;
     tr.bits_per_word = bits;
 
-    /* open device */
-    strncpy(device, dev_path, MAX_PATH_LEN);
-    fd = open(device, O_RDWR);
-    if (fd < 0)
-      pabort("can't open device");
+    /* bits per word */
+    update_bits();
 
     /* spi  mode */
     update_mode();
-
-    /* bits per word */
-    update_bits();
 
     /* max speed hz */
     update_speed();
@@ -137,6 +140,7 @@ extern "C" {
     ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     if (ret == -1)
       pabort("can't set spi mode");
+
     ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
     if (ret == -1)
       pabort("can't get spi mode");

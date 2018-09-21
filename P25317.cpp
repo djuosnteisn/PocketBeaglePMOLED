@@ -54,10 +54,11 @@ void P25317::init_display(void)
 
 void P25317::init_spi(void)
 {
+  spi_init(SPI_DEV_PATH);
   spi_set_mode(SPI_MODE);
   spi_set_speed(SPI_SPEED);
   spi_set_bits(SPI_BITS);
-  spi_open(SPI_DEV_PATH);
+  spi_open();
 }
 
 void P25317::close_spi(void)
@@ -265,10 +266,11 @@ unsigned char P25317::get_invert(void)
 
 void P25317::clear_screen(unsigned char on_off)
 {
-  unsigned char blank[NUM_ROWS * NUM_COLS];
+  unsigned char blank[NUM_COLS];
 
-  memset(blank, on_off? 1 : 0, NUM_ROWS * NUM_COLS);
-  send_dat_cmd(blank, sizeof(blank));
+  memset(blank, on_off? 0xff : 0x00, NUM_COLS);
+  for (int i = 0; i < NUM_ROWS; i++)
+    send_dat_cmd(blank, sizeof(blank));
 }
 
 void P25317::send_test_screen(char screen)
@@ -372,6 +374,13 @@ int main()
       my_disp.set_contrast(contrast);
 
       usleep(500000);
+
+      if (i)
+	my_disp.clear_screen(1);
+      else
+	my_disp.clear_screen(0);
+
+      usleep(250000);
     }
   return 0;
 }

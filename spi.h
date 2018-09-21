@@ -13,7 +13,8 @@ extern "C" {
 #define MAX_SPEED 5000000
 #define MIN_SPEED 500000
 
-  void spi_open(const char *dev_path);
+  void spi_init(const char *dev_path);
+  void spi_open(void);
   void spi_close(void);
   void spi_transfer(unsigned char *tx, unsigned char *rx, unsigned int len);
   int get_fd(void);
