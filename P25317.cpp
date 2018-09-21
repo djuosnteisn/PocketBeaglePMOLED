@@ -301,10 +301,6 @@ void P25317::send_test_screen(char screen)
 		    send_dat_cmd(buf_ff, sizeof(buf_ff));
 		}
 	    }
-	  // if (i % 2)
-	  //   send_dat_cmd(buf_ff, sizeof(buf_ff));
-	  // else
-	  //   send_dat_cmd(buf_00, sizeof(buf_00));
 	}
     }
   else
@@ -328,10 +324,6 @@ void P25317::send_test_screen(char screen)
 		    send_dat_cmd(buf_00, sizeof(buf_00));
 		}
 	    }
-	  // if (i % 2)
-	  //   send_dat_cmd(buf_00, sizeof(buf_00));
-	  // else
-	  //   send_dat_cmd(buf_ff, sizeof(buf_ff));
 	}
     }
 }
