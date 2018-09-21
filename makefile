@@ -1,11 +1,9 @@
-all: main.exe
+all: make_test.exe
 
-main.exe: main.o
-	gcc -o main.exe main.o
+make_test.exe: P25317.cpp P25317.h GPIO.cpp GPIO.h spi.c spi.h
+	arm-linux-gnueabihf-g++-6 P25317.cpp GPIO.cpp spi.c -lpthread -o make_test.exe
 
-main.o: main.c
-	gcc -c main.c
 
 clean:
-	rm main.o main.exe
+	rm P25317.o GPIO.o spi.o
 
