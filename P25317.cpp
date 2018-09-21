@@ -102,7 +102,7 @@ void P25317::enable_display(int en)
 
 void P25317::sleep_display(unsigned char state)
 {
-  unsigned char buf[] = {state? (unsigned char)1 : (unsigned char)0};
+  unsigned char buf[] = {state? (unsigned char)SLEEP_ON : (unsigned char)SLEEP_OFF};
   
   if (state)
     {
@@ -340,18 +340,20 @@ int main()
   my_disp.init_spi();
   usleep(1000000);
   my_disp.enable_display(DISP_ENABLE);
+
+  my_disp.send_test_screen(0);
   while (1)
     {
       if (i)
-	{
-	  i = 0;
-	  my_disp.send_test_screen(0);
-	}
+      	{
+      	  i = 0;
+	  //      	  my_disp.send_test_screen(0);
+      	}
       else
-	{
-	  i = 1;
-	  my_disp.send_test_screen(1);
-	}
+      	{
+      	  i = 1;
+	  //      	  my_disp.send_test_screen(1);
+      	}
 
       if (dir)
 	{
@@ -376,11 +378,9 @@ int main()
       usleep(500000);
 
       if (i)
-	my_disp.clear_screen(1);
+	my_disp.set_invert(1);
       else
-	my_disp.clear_screen(0);
-
-      usleep(250000);
+	my_disp.set_invert(0);
     }
   return 0;
 }
