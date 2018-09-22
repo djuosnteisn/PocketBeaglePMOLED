@@ -330,7 +330,7 @@ void P25317::send_test_screen(char screen)
     }
 }
 
-
+/*
 int main()
 {
   P25317 my_disp(59, 58, 57); // 59:rst_pin, 58:cs_pin, 57:dat_ctl_pin
@@ -384,3 +384,4 @@ int main()
     }
   return 0;
 }
+*/
