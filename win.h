@@ -1,14 +1,19 @@
 #ifndef WIN_H
 #define WIN_H
 
+#include "fonts.h"
+
 // display pins
 #define RST_PIN 59
 #define CS_PIN 58
 #define DAT_CTL_PIN 57
 
+// logic macros
+#define BITS_IN_BYTE 8
+
 //NOTE temporary
 #define BMP_T unsigned char
-#define FONT_T unsigned char 
+#define COLOR_T unsigned short
 
 /* create a P25317 obj for OLED interaction */
 void win_init(void);

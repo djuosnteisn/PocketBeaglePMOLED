@@ -23,7 +23,7 @@ using namespace exploringBB;
 #define ADDR_MODE_HORZ 0x00
 #define ADDR_MODE_VERT 0X01
 #define ADDR_MODE_PAGE 0x10
-#define DEF_ADDR_MODE ADDR_MODE_HORZ
+#define DEF_ADDR_MODE ADDR_MODE_VERT
 #define ROW_REG 0x22
 #define DEF_START_ROW 0
 #define DEF_STOP_ROW 7

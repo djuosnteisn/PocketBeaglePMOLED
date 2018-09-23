@@ -73,8 +73,8 @@ void P25317::enable_display(int en)
       0xA8, 0x3F,           // Set MUX
       COL_OFF_REG, col_off, // Set Display Offset
       0x40,                 // Set Display Start line
-      0xA0,                 // Set Segment Remap (A0 or A1)
-      0xC0,                 // Set COM Output Scan Dir (C0 or C8)
+      0xA1,                 // Set Segment Remap (A0 or A1)
+      0xC8,                 // Set COM Output Scan Dir (C0 or C8)
       //      0xDA, 0x02,   // Set COM Pins HW Config
       0x81, contrast,       // Set Contrast
       0xA4,                 // Display uses RAM content
