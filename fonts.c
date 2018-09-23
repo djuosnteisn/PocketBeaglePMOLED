@@ -227,7 +227,7 @@ unsigned char font_big_bits[96 * 34] =
 
 unsigned char font_big_width[96] =
   {
-    0x11,	//Space
+    0x6,	//Space
     0x5,	//!
     0x7,	//"
     0xb,	//#
