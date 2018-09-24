@@ -235,8 +235,8 @@ void s_win_set_xy(unsigned char x, unsigned char y)
 }
 
 
-int main()
-{
+// int main()
+// {
   // static unsigned char chr = 'A';
   // static unsigned char x = 0, y = 0, ascii_index;
   // const char *string_1 = "FIRST LINE!";
@@ -244,7 +244,7 @@ int main()
   // const char *string_3 = "Third LINE!";
   // const char *string_4 = "4th line, woohoo!";
 
-  win_init();
+  // win_init();
 
   // win_put_text_xy(string_1, 0, 0, MAX_COL);
   // printf("string_1 len:%d\n", win_get_str_len(string_1));
@@ -265,15 +265,15 @@ int main()
   // printf("string_4 len:%d\n", win_get_str_len(string_4));
   // usleep(500000);
 
-  while (1)
-    {
-      win_put_bmp_xy(33, 0, sc_circle);
-      usleep(1000000);
-      win_clear_screen(BLACK);
-      win_put_bmp_xy(0, 2, sc_name);
-      usleep(1000000);
-      win_clear_screen(BLACK);
-    }
+  // while (1)
+  //   {
+  //     win_put_bmp_xy(33, 0, sc_circle);
+  //     usleep(1000000);
+  //     win_clear_screen(BLACK);
+  //     win_put_bmp_xy(0, 2, sc_name);
+  //     usleep(1000000);
+  //     win_clear_screen(BLACK);
+  //   }
       
   // for (int i = 0; i < 26; i++)
   //   {
@@ -298,4 +298,4 @@ int main()
   //     usleep(500000);
   //     x += 2;
   //   }
-}
+// }

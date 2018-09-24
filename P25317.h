@@ -1,5 +1,5 @@
-#ifndef P25317_H_
-#define P25317_H_
+#ifndef P25317_H
+#define P25317_H
 #include "GPIO.h"
 
 using namespace exploringBB;
@@ -77,4 +77,4 @@ class P25317
   void send_test_screen(char screen);
 };
 
-#endif
+#endif //P25317_H
