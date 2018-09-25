@@ -2,10 +2,17 @@
 #define PAGE_H
 
 // button macros
-#define PIN_MENU 55 //NOTE wrong value
-#define PIN_BACK 55 //NOTE wrong value
-#define PIN_UP 55 //NOTE wrong value
-#define PIN_DN 55 //NOTE wrong value
+/* bit  meaning
+   6    slewctrl (0:Fast, 1:Slow
+   5    rxactive (0:rx disabled, 1:enabled)
+   4    pullupdn (0:pull down, 1:pull up)
+   3    pullen   (0:enabled, 1:disabled)
+   2-0  mux mode (0 thru 7, see table)
+*/
+#define PIN_MENU 89 //def mode: 0x00000034
+#define PIN_BACK 60 //def mode: 0x00000030
+#define PIN_UP 52 //def mode: 0x0x0000002F
+#define PIN_DN 23 //def mode: 0x00000007
 
 // event types
 enum events
