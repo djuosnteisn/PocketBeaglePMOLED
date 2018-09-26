@@ -1,7 +1,7 @@
 all: make_test.exe
 
-make_test.exe: win.cpp win.h fonts.c fonts.h bmps.c bmps.h P25317.cpp P25317.h GPIO.cpp GPIO.h spi.c spi.h main.cpp main.h page.cpp page.h btns.cpp btns.h
-	arm-linux-gnueabihf-g++-6 main.cpp page.cpp btns.cpp win.cpp fonts.c bmps.c P25317.cpp GPIO.cpp spi.c -lpthread -o make_test.exe
+make_test.exe: win.cpp win.h fonts.c fonts.h bmps.c bmps.h P25317.cpp P25317.h GPIO.cpp GPIO.h spi.c spi.h main.cpp main.h page.cpp page.h btns.cpp btns.h gpio_setup.c gpio_setup.h
+	arm-linux-gnueabihf-g++-6 main.cpp page.cpp btns.cpp win.cpp fonts.c bmps.c P25317.cpp GPIO.cpp spi.c gpio_setup.c -lpthread -o make_test.exe
 
 
 clean:
