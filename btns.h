@@ -21,6 +21,8 @@ class BTNS
   ~BTNS(); //destructor
 
   BTN_EV get_event(void);
+  //NOTE diag tests
+  void set_state(unsigned char state);
 };
 
 #endif //BTNS_H

@@ -31,14 +31,17 @@ void page_task(void)
 
   if (i)
     {
-      win_put_bmp_xy(33, 0, sc_circle);
+      //      win_put_bmp_xy(33, 0, sc_circle);
+      btns.set_state(i);
       i = 0;
     }
   else
     {
-      win_put_bmp_xy(0, 2, sc_name);
+      //      win_put_bmp_xy(0, 2, sc_name);
+      btns.set_state(i);
       i = 1;
     }
+
 }
 
 void page_show_page(pages page)
