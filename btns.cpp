@@ -5,16 +5,17 @@
 using namespace std;
 using namespace exploringBB;
 
+static BTN_EV s_event;
+static
+
 int btn_callback(int var)
 {
-  printf("BTN pressed\n");
+  s_event.event = 1;
   return 0;
 }
 
 BTNS::BTNS(int menu_pin, int back_pin, int up_pin, int dn_pin)
 {
-  BTN_EV event;
-
   /* call linux config-pin utility to set
      our button pins as inputs with pull-ups
      enabled
@@ -57,5 +58,10 @@ BTNS::~BTNS()
 
 BTN_EV BTNS::get_event(void)
 {
-  return event;
+  return s_event;
+}
+
+void BTNS::reset_event(void)
+{
+  s_event.event = 0;
 }

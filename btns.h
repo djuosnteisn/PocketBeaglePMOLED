@@ -14,13 +14,13 @@ class BTNS
 {
  private:
   GPIO *menu, *back, *up, *dn;
-  BTN_EV event;
 
  public:
   BTNS(int menu_pin, int back_pin, int up_pin, int dn_pin);
   ~BTNS(); //destructor
 
   BTN_EV get_event(void);
+  void reset_event(void);
 };
 
 #endif //BTNS_H

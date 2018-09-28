@@ -15,8 +15,13 @@ void page_init(void)
   page_show_page(PAGE_MAIN);
 }
 
+/* page_task()
+   called every 50ms.  Checks for UI events
+   and dispatches to current page.
+*/
 void page_task(void)
 {
+#define DEBOUNCE 3 // ~150ms
   /*
   while (btns.get_event())
     {
@@ -28,18 +33,25 @@ void page_task(void)
   */
 
   static unsigned char i = 0;
+  static unsigned int debounce = DEBOUNCE;
+  BTN_EV ev = btns.get_event();
 
-  if (i)
+  if (ev.event && !debounce--)
     {
-      //      win_put_bmp_xy(33, 0, sc_circle);
-      i = 0;
+      btns.reset_event();
+      win_clear_screen(BLACK);
+      if (i)
+	{
+	  i = 0;
+	  win_put_bmp_xy(33, 0, sc_circle);
+	}
+      else
+	{
+	  i = 1;
+	  win_put_bmp_xy(0, 2, sc_name);
+	}
+      debounce = DEBOUNCE;
     }
-  else
-    {
-      //      win_put_bmp_xy(0, 2, sc_name);
-      i = 1;
-    }
-
 }
 
 void page_show_page(pages page)
