@@ -41,15 +41,16 @@ void page_task(void)
       btns.reset_event();
       win_clear_screen(BLACK);
       if (i)
-	{
-	  i = 0;
-	  win_put_bmp_xy(33, 0, sc_circle);
-	}
+  	{
+  	  i = 0;
+  	  win_put_bmp_xy(33, 0, sc_circle);
+  	}
       else
-	{
-	  i = 1;
-	  win_put_bmp_xy(0, 2, sc_name);
-	}
+  	{
+  	  i = 1;
+	  win_put_bmp_xy(0, 4, sc_name);
+	  //win_put_bmp_xy(0, 4, diag);
+  	}
       debounce = DEBOUNCE;
     }
 }

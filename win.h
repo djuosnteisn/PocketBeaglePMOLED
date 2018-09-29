@@ -13,11 +13,17 @@
 #define BITS_IN_BYTE 8
 #define MAX_ROW 7
 #define MAX_COL 127
+#define FRAME_WIDTH_PIX 128
+#define FRAME_HEIGHT_PIX 64
+#define FRAME_HEIGHT_ROW 8
+#define PIX_PER_ROW 8
 #define INVERSE_ON 1
 #define INVERSE_OFF 0
 #define DEF_INVERSE INVERSE_OFF
 #define BLACK 0
 #define WHITE 1
+#define TRANS_OFF 0
+#define TRANS_ON 1
 
 /* create a P25317 obj for OLED interaction */
 void win_init(void);
@@ -65,5 +71,8 @@ void win_set_bg_color(unsigned char on_off);
 
 /* invert colors on display */
 void win_invert_color(unsigned char inv);
+
+/* set transparency */
+void win_set_transparent(unsigned char on_off);
 
 #endif //WIN_H

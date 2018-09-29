@@ -17,6 +17,8 @@ extern "C" {
   /* bmp images */
   const extern BMP_T sc_circle;
   const extern BMP_T sc_name;
+  //NOTE diag
+  const extern BMP_T diag;
 
 
 #endif /* BMPS_H */

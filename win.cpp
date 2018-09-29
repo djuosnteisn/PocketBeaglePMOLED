@@ -8,8 +8,16 @@
 
 static P25317 disp(RST_PIN, CS_PIN, DAT_CTL_PIN);
 static FONT_T s_font;
-static unsigned char s_inverse = DEF_INVERSE;
+static unsigned char s_inverse = DEF_INVERSE, s_trans = TRANS_OFF;
+static struct tagFrame
+{
+  unsigned char buf[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
+  unsigned char dirty[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
+} frame;
+
 static void s_win_set_xy(unsigned char x, unsigned char y);
+static unsigned char s_win_get_row(unsigned char y_pix);
+static unsigned char s_win_get_row_off(unsigned char y_pix);
 
 /* create a P25317 obj for OLED interaction */
 void win_init(void)
@@ -22,20 +30,29 @@ void win_init(void)
   disp.clear_screen(BLACK);
   // initialize our font pointer
   s_font = font_big;
+  // initialize our frame
+  memset(frame.buf, 0, sizeof(frame.buf));
+  memset(frame.dirty, 0, sizeof(frame.dirty));
+  // init other things
+  s_trans = TRANS_OFF;
 }
 
-/* draw a single pixel at X and Y */
+/* draw a single pixel at X and Y
+   X is col in pixels, 0 - 127
+   Y is row in pixels, 0 - 63
+*/
 void win_put_pixel_xy(unsigned char x, unsigned char y)
 {
-  //NOTE unfinished, only prints a whole byte
-  unsigned char temp[1];
-
-  // set the starting X, Y
-  disp.set_start_col(x);
-  disp.set_start_row(y);
-
-  temp[0] = 0xff;
-  disp.send_dat_cmd(temp, sizeof(temp));
+  // get our page row from the y pixel
+  unsigned char row = s_win_get_row(y);
+  // get our offset within the row for unaligned writes
+  unsigned char row_off = s_win_get_row_off(y);
+  // write the pixel to our frame buf
+  if (s_trans)
+    frame.buf[x][row] |= (1 << row_off);
+  else
+    frame.buf[x][row] = (1 << row_off);
+  frame.dirty[x][row] = 1;
 }
 
 /* draw a line from X1 to X2 at row Y */
@@ -66,31 +83,97 @@ void win_put_box_empty(unsigned char x1, unsigned char y1,
 {
 }
 
-/* draw a bitmap image, top left corner at X, Y */
+
+/* Draw a bitmap image, top left corner at X, Y.
+   This function updates our frame buffer, and uses it to build
+   a transfer buffer used to send to the display.
+ */
 void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 {
-  disp.set_start_col(x);
-  if ((x + bmp.width) > MAX_COL)
-    disp.set_stop_col(MAX_COL);
-  else
-    disp.set_stop_col(x + bmp.width);
-  disp.set_start_row(y);
-  unsigned char row_height = bmp.height / BITS_IN_BYTE;
-  if (bmp.height % BITS_IN_BYTE)
-    row_height++;
-  if ((y + row_height) > MAX_ROW)
-      disp.set_stop_row(MAX_ROW);
-  else
-      disp.set_stop_row(y + row_height - 1);
+  // get the row and offset values
+  unsigned char row = s_win_get_row(y);
+  unsigned char row_off = s_win_get_row_off(y);
+  // byte height = necessary bytes to cover pixel height, e.g 10 pix = 2 bytes
+  unsigned char byte_height = (bmp.height % BITS_IN_BYTE)?
+    (bmp.height / BITS_IN_BYTE + 1) : (bmp.height / BITS_IN_BYTE);
+  // if image isn't row aligned, need to print additional row
+  unsigned char row_height = row_off ? byte_height + 1 : byte_height;
 
-  // send the image one row at a time to avoid overwhelming ioctl
-  unsigned short index = 0;
-  for (int i = 0; i < row_height; i++)
+  // update our frame buf and build a transfer buffer that we'll
+  // send to the disp obj
+  unsigned char transfer_buf[bmp.width * row_height];
+  int index = 0, transfer_index = 0; //bmp and transfer buf index
+  for (int i = 0; i < bmp.width; i++)
     {
-      disp.send_dat_cmd((unsigned char *)&bmp.image[index], bmp.width);
-      index += bmp.width;
+      if (row_off) // not row aligned
+	{
+	  // we need merge offset bytes across row boundries
+	  for (int j = 0; j < row_height; j++)
+	    {
+	      // top byte
+	      if (j == 0)
+		{
+		  if (s_trans)
+		    frame.buf[x + i][row + j] |= (bmp.image[index] << row_off);
+		  else
+		    frame.buf[x + i][row + j] = (bmp.image[index] << row_off);
+		  ++index;
+		}
+	      // middle bytes
+	      else if (j < (row_height - 1))
+		{
+		  if (s_trans)
+		    frame.buf[x + i][row + j] |=
+		      ((bmp.image[index - 1] >> row_off) | (bmp.image[index] << row_off));
+		  else
+		    frame.buf[x + i][row + j] =
+		      ((bmp.image[index - 1] >> row_off) | (bmp.image[index] << row_off));
+		  // don't inc index if it's the last part of bmp
+		  if (j < (byte_height - 1))
+		    ++index;
+		}
+	      // bottom byte
+	      else
+		{
+		  if (s_trans)
+		    frame.buf[x + i][row + j] |= (bmp.image[index] >> row_off);
+		  else
+		    frame.buf[x + i][row + j] = (bmp.image[index] >> row_off);
+		  ++index;
+		}
+	      transfer_buf[transfer_index++] = frame.buf[x + i][row + j];
+	    }
+	}
+      else // row aligned
+	{
+	  //straight forward byte mapping
+	  for (int j = 0; j < row_height; j++)
+	    {
+	      if (s_trans)
+		frame.buf[x + i][row + j] |= bmp.image[index];
+	      else
+		frame.buf[x + i][row + j] = bmp.image[index];
+	      ++index;
+	      transfer_buf[transfer_index++] = frame.buf[x + i][row + j];
+	    }
+	}
     }
+
+  /* now that the frame buf is updated, let's write the disp */
+  // set start and stop row/cols
+  disp.set_start_col(x);
+  disp.set_stop_col(x + bmp.width);
+  disp.set_start_row(row);
+  disp.set_stop_row(row + byte_height);
+  // send the data
+  disp.send_dat_cmd(transfer_buf, (bmp.width * row_height));
+  // reset start and stop
+  disp.set_start_col(0);
+  disp.set_stop_col(MAX_COL);
+  disp.set_start_row(0);
+  disp.set_stop_row(MAX_ROW);
 }
+
 
 /* Write text to the window with top left pixel at X, Y.
    Replace any unsupported ascii characters with a '.'
@@ -232,6 +315,18 @@ void win_invert_color(unsigned char inv)
 /* set the X and Y coords of display */
 void s_win_set_xy(unsigned char x, unsigned char y)
 {
+}
+
+/* return the page row for a pixel row */
+unsigned char s_win_get_row(unsigned char y_pix)
+{
+  return y_pix / PIX_PER_ROW;
+}
+
+/* return the row offset for a pixel row */
+unsigned char s_win_get_row_off(unsigned char y_pix)
+{
+  return y_pix % PIX_PER_ROW;
 }
 
 
