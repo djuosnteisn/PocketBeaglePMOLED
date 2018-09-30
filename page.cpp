@@ -50,6 +50,7 @@ void page_task(void)
   	  i = 1;
 	  win_put_bmp_xy(0, 4, sc_name);
 	  //win_put_bmp_xy(0, 4, diag);
+	  //win_put_text_xy("BLA BLA", 0, 0, 100);
   	}
       debounce = DEBOUNCE;
     }

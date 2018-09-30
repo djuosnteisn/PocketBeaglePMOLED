@@ -94,7 +94,7 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
   unsigned char row = s_win_get_row(y);
   unsigned char row_off = s_win_get_row_off(y);
   // byte height = necessary bytes to cover pixel height, e.g 10 pix = 2 bytes
-  unsigned char byte_height = (bmp.height % BITS_IN_BYTE)?
+  unsigned char byte_height = (bmp.height % BITS_IN_BYTE) ?
     (bmp.height / BITS_IN_BYTE + 1) : (bmp.height / BITS_IN_BYTE);
   // if image isn't row aligned, need to print additional row
   unsigned char row_height = row_off ? byte_height + 1 : byte_height;
@@ -167,11 +167,6 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
   disp.set_stop_row(row + byte_height);
   // send the data
   disp.send_dat_cmd(transfer_buf, (bmp.width * row_height));
-  // reset start and stop
-  disp.set_start_col(0);
-  disp.set_stop_col(MAX_COL);
-  disp.set_start_row(0);
-  disp.set_stop_row(MAX_ROW);
 }
 
 
@@ -184,20 +179,18 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 */
 void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned char width)
 {
-  unsigned char chr, ascii_index, buf[s_font.font_height / BITS_IN_BYTE * MAX_COL];
-  unsigned short font_index, bytes_in_chr, buf_index = 0;
+  unsigned char chr, ascii_index, bytes_in_chr;
+  unsigned char transfer_buf[s_font.font_height / BITS_IN_BYTE * MAX_COL];
+  unsigned short font_index, transfer_index = 0;
 
-  // set the X, Y based off active font height
-  disp.set_start_col(x);
-  if ((x + width) <= MAX_COL)
-    disp.set_stop_col(x + width);
-  else
-    disp.set_stop_col(MAX_COL);
-  disp.set_start_row(y);
-  if ((y + (s_font.font_height / BITS_IN_BYTE)) <= MAX_ROW)
-    disp.set_stop_row(y + (s_font.font_height / BITS_IN_BYTE) - 1);
-  else
-    disp.set_stop_row(MAX_ROW);
+  // get the row and offset values
+  unsigned char row = s_win_get_row(y), row_off = s_win_get_row_off(y);
+  // character height = necessary bytes to cover font height, e.g. 10 pix = 2 bytes
+  unsigned char char_height = (s_font.font_height / BITS_IN_BYTE) ?
+    (s_font.font_height / BITS_IN_BYTE + 1) : (s_font.font_height / BITS_IN_BYTE);
+  // if font isn't row aligned, need to print additional row
+  unsigned char row_height = row_off ? char_height + 1 : char_height;
+  
 
   // get the total allowed num of bytes to copy over
   unsigned short max_bytes = s_font.font_height / BITS_IN_BYTE * MAX_COL;
@@ -213,22 +206,53 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
       // get proper indexes into our tables
       ascii_index = chr - s_font.first_char;
       font_index = ascii_index * s_font.bytes_per_char;
-      bytes_in_chr = (s_font.font_height / BITS_IN_BYTE) * s_font.font_width_table[ascii_index];
       // copy chars into our output buffer
-      for (int j = 0; j < bytes_in_chr; j++)
+      for (int j = 0; j < s_font.font_width_table[ascii_index]; j++)
 	{
-	  if (buf_index < max_bytes)
+	  if (row_off)
 	    {
-	      if (s_inverse == INVERSE_OFF)
-		buf[buf_index++] = s_font.font_table[font_index + j];
-	      else
-		buf[buf_index++] = ~s_font.font_table[font_index + j];
+	    }
+	  else
+	    {
+	      for (int k = 0; k < row_height; k++)
+		{
+		  if (s_trans)
+		    {
+		      if (s_inverse == INVERSE_OFF)
+			frame.buf[x + j][row + k] |= s_font.font_table[font_index + j];
+		      else
+			frame.buf[x + j][row + k] |= ~s_font.font_table[font_index + j];
+		    }
+		  else
+		    {
+		      if (s_inverse == INVERSE_OFF)
+			frame.buf[x + j][row + k] = s_font.font_table[font_index + j];
+		      else
+			frame.buf[x + j][row + k] = ~s_font.font_table[font_index + j];
+		    }
+		  transfer_buf[transfer_index++] = frame.buf[x + j][row + k];
+		}
 	    }
 	}
     }
-  // send out the data
-  disp.send_dat_cmd(buf, buf_index);
+
+  /* now that the frame buf is updated, let's write the disp */
+  // set start and stop row/cols
+  disp.set_start_col(x);
+  // if ((x + width) <= MAX_COL)
+  //   disp.set_stop_col(x + width);
+  // else
+  disp.set_stop_col(MAX_COL);
+  disp.set_start_row(row);
+  // if ((y + (s_font.font_height / BITS_IN_BYTE)) <= MAX_ROW)
+  //   disp.set_stop_row(y + (s_font.font_height / BITS_IN_BYTE) - 1);
+  // else
+  //   disp.set_stop_row(MAX_ROW);
+  disp.set_stop_row(row + char_height);
+  // send the data
+  disp.send_dat_cmd(transfer_buf, transfer_index);
 }
+
 
 /* Write a single character to the window with top left pixel at X, Y.
    It's the caller's responsibility to make sure the pixel fits on the
