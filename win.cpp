@@ -98,7 +98,6 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
     (bmp.height / BITS_IN_BYTE + 1) : (bmp.height / BITS_IN_BYTE);
   // if image isn't row aligned, need to print additional row
   unsigned char row_height = row_off ? byte_height + 1 : byte_height;
-
   // update our frame buf and build a transfer buffer that we'll
   // send to the disp obj
   unsigned char transfer_buf[bmp.width * row_height];
@@ -107,7 +106,7 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
     {
       if (row_off) // not row aligned
 	{
-	  // we need merge offset bytes across row boundries
+	  // we need to merge offset bytes across row boundries
 	  for (int j = 0; j < row_height; j++)
 	    {
 	      // top byte
@@ -124,10 +123,12 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 		{
 		  if (s_trans)
 		    frame.buf[x + i][row + j] |=
-		      ((bmp.image[index - 1] >> row_off) | (bmp.image[index] << row_off));
+		      ((bmp.image[index - 1] >> (BITS_IN_BYTE - row_off)) |
+		       (bmp.image[index] << row_off));
 		  else
 		    frame.buf[x + i][row + j] =
-		      ((bmp.image[index - 1] >> row_off) | (bmp.image[index] << row_off));
+		      ((bmp.image[index - 1] >> (BITS_IN_BYTE - row_off)) |
+		       (bmp.image[index] << row_off));
 		  // don't inc index if it's the last part of bmp
 		  if (j < (byte_height - 1))
 		    ++index;
@@ -136,9 +137,9 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 	      else
 		{
 		  if (s_trans)
-		    frame.buf[x + i][row + j] |= (bmp.image[index] >> row_off);
+		    frame.buf[x + i][row + j] |= (bmp.image[index] >> (BITS_IN_BYTE - row_off));
 		  else
-		    frame.buf[x + i][row + j] = (bmp.image[index] >> row_off);
+		    frame.buf[x + i][row + j] = (bmp.image[index] >> (BITS_IN_BYTE - row_off));
 		  ++index;
 		}
 	      transfer_buf[transfer_index++] = frame.buf[x + i][row + j];
@@ -146,7 +147,7 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 	}
       else // row aligned
 	{
-	  //straight forward byte mapping
+	  // straight forward byte mapping
 	  for (int j = 0; j < row_height; j++)
 	    {
 	      if (s_trans)
@@ -164,7 +165,7 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
   disp.set_start_col(x);
   disp.set_stop_col(x + bmp.width);
   disp.set_start_row(row);
-  disp.set_stop_row(row + byte_height);
+  disp.set_stop_row(row + row_height - 1);
   // send the data
   disp.send_dat_cmd(transfer_buf, (bmp.width * row_height));
 }
@@ -186,7 +187,7 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
   // get the row and offset values
   unsigned char row = s_win_get_row(y), row_off = s_win_get_row_off(y);
   // character height = necessary bytes to cover font height, e.g. 10 pix = 2 bytes
-  unsigned char char_height = (s_font.font_height / BITS_IN_BYTE) ?
+  unsigned char char_height = (s_font.font_height % BITS_IN_BYTE) ?
     (s_font.font_height / BITS_IN_BYTE + 1) : (s_font.font_height / BITS_IN_BYTE);
   // if font isn't row aligned, need to print additional row
   unsigned char row_height = row_off ? char_height + 1 : char_height;
@@ -195,6 +196,8 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
   // get the total allowed num of bytes to copy over
   unsigned short max_bytes = s_font.font_height / BITS_IN_BYTE * MAX_COL;
 
+  unsigned char f_index = x;
+  unsigned short tot_width = 0;
   // build our kerned string buffer to be written
   for (int i = 0; i < strlen(str); i++)
     {
@@ -209,46 +212,128 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
       // copy chars into our output buffer
       for (int j = 0; j < s_font.font_width_table[ascii_index]; j++)
 	{
-	  if (row_off)
+	  if (row_off) // not row aligned
 	    {
+	      // we need to merge offset bytes across row boundries
+	      for (int k = 0; k < row_height; k++)
+		{
+		  // top byte
+		  if (k == 0)
+		    {
+		      if (s_trans)
+			{
+			  if (s_inverse == INVERSE_OFF)
+			    frame.buf[f_index][row + k] |=
+			      (s_font.font_table[font_index] << row_off);
+			  else
+			    frame.buf[f_index][row + k] |=
+			      (~s_font.font_table[font_index] << row_off);
+			}
+		      else
+			{
+			  if (s_inverse == INVERSE_OFF)
+			    frame.buf[f_index][row + k] =
+			      (s_font.font_table[font_index] << row_off);
+			  else
+			    frame.buf[f_index][row + k] =
+			      (~s_font.font_table[font_index] << row_off);
+			}
+		      ++font_index;
+		    }
+		  // middle bytes
+		  else if (k < (row_height -1))
+		    {
+		      if (s_trans)
+			{
+			  if (s_inverse == INVERSE_OFF)
+			    frame.buf[f_index][row + k] |=
+			      (s_font.font_table[font_index] << row_off) |
+			      (s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+			  else
+			    frame.buf[f_index][row + k] |=
+			      (~s_font.font_table[font_index] << row_off) |
+			      (~s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+			}
+		      else
+			{
+			  if (s_inverse == INVERSE_OFF)
+			    frame.buf[f_index][row + k] =
+			      (s_font.font_table[font_index] << row_off) |
+			      (s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+			  else
+			    frame.buf[f_index][row + k] =
+			      (~s_font.font_table[font_index] << row_off) |
+			      (~s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+			}
+		      if (k < (char_height - 1))
+			++font_index;
+		    }
+		  // bottom byte
+		  else
+		    {
+		      if (s_trans)
+			{
+			  if (s_inverse == INVERSE_OFF)
+			    frame.buf[f_index][row + k] |=
+			      (s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
+			  else
+			    frame.buf[f_index][row + k] |=
+			      (~s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
+			}
+		      else
+			{
+			  if (s_inverse == INVERSE_OFF)
+			    frame.buf[f_index][row + k] =
+			      (s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
+			  else
+			    frame.buf[f_index][row + k] =
+			      (~s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
+			}
+		      ++font_index;
+		    }
+		  transfer_buf[transfer_index++] = frame.buf[f_index][row + k];
+		}
 	    }
-	  else
+	  else // row aligned
 	    {
+	      // straight forward byte mapping
 	      for (int k = 0; k < row_height; k++)
 		{
 		  if (s_trans)
 		    {
 		      if (s_inverse == INVERSE_OFF)
-			frame.buf[x + j][row + k] |= s_font.font_table[font_index + j];
+			frame.buf[f_index][row + k] |= s_font.font_table[font_index];
 		      else
-			frame.buf[x + j][row + k] |= ~s_font.font_table[font_index + j];
+			frame.buf[f_index][row + k] |= ~s_font.font_table[font_index];
 		    }
 		  else
 		    {
 		      if (s_inverse == INVERSE_OFF)
-			frame.buf[x + j][row + k] = s_font.font_table[font_index + j];
+			frame.buf[f_index][row + k] = s_font.font_table[font_index];
 		      else
-			frame.buf[x + j][row + k] = ~s_font.font_table[font_index + j];
+			frame.buf[f_index][row + k] = ~s_font.font_table[font_index];
 		    }
-		  transfer_buf[transfer_index++] = frame.buf[x + j][row + k];
+		  ++font_index;
+		  transfer_buf[transfer_index++] = frame.buf[f_index][row + k];
 		}
 	    }
+	  ++f_index;
+	  ++tot_width;
 	}
     }
 
   /* now that the frame buf is updated, let's write the disp */
   // set start and stop row/cols
   disp.set_start_col(x);
-  // if ((x + width) <= MAX_COL)
-  //   disp.set_stop_col(x + width);
-  // else
+  if ((x + tot_width) <= MAX_COL)
+    disp.set_stop_col(x + tot_width);
+  else
   disp.set_stop_col(MAX_COL);
   disp.set_start_row(row);
-  // if ((y + (s_font.font_height / BITS_IN_BYTE)) <= MAX_ROW)
-  //   disp.set_stop_row(y + (s_font.font_height / BITS_IN_BYTE) - 1);
-  // else
-  //   disp.set_stop_row(MAX_ROW);
-  disp.set_stop_row(row + char_height);
+  if (row + row_height <= MAX_ROW)
+    disp.set_stop_row(row + row_height - 1);
+  else
+    disp.set_stop_row(MAX_ROW);
   // send the data
   disp.send_dat_cmd(transfer_buf, transfer_index);
 }
@@ -352,69 +437,3 @@ unsigned char s_win_get_row_off(unsigned char y_pix)
 {
   return y_pix % PIX_PER_ROW;
 }
-
-
-// int main()
-// {
-  // static unsigned char chr = 'A';
-  // static unsigned char x = 0, y = 0, ascii_index;
-  // const char *string_1 = "FIRST LINE!";
-  // const char *string_2 = "2nd LINE!";
-  // const char *string_3 = "Third LINE!";
-  // const char *string_4 = "4th line, woohoo!";
-
-  // win_init();
-
-  // win_put_text_xy(string_1, 0, 0, MAX_COL);
-  // printf("string_1 len:%d\n", win_get_str_len(string_1));
-  // usleep(500000);
-
-  // win_invert_color(INVERSE_ON);
-  // win_put_text_xy(string_2, 0, 2, MAX_COL);
-  // printf("string_2 len:%d\n", win_get_str_len(string_2));
-  // usleep(500000);
-
-  // win_invert_color(INVERSE_OFF);
-  // win_put_text_xy(string_3, 0, 4, MAX_COL);
-  // printf("string_3 len:%d\n", win_get_str_len(string_3));
-  // usleep(500000);
-
-  // win_invert_color(INVERSE_ON);
-  // win_put_text_xy(string_4, 0, 6, MAX_COL);
-  // printf("string_4 len:%d\n", win_get_str_len(string_4));
-  // usleep(500000);
-
-  // while (1)
-  //   {
-  //     win_put_bmp_xy(33, 0, sc_circle);
-  //     usleep(1000000);
-  //     win_clear_screen(BLACK);
-  //     win_put_bmp_xy(0, 2, sc_name);
-  //     usleep(1000000);
-  //     win_clear_screen(BLACK);
-  //   }
-      
-  // for (int i = 0; i < 26; i++)
-  //   {
-  //     win_put_char_xy(chr, x, y);
-  //     //win_put_pixel_xy(0, 0);
-  //     usleep(500000);
-  //     ascii_index = chr - s_font.first_char;
-  //     x += s_font.font_width_table[ascii_index];
-  //     chr++;
-  //     ascii_index = chr - s_font.first_char;
-  //     if ((x + s_font.font_width_table[ascii_index]) >= MAX_COL)
-  // 	{
-  // 	  x = 0;
-  // 	  y += 2;
-  // 	}
-  //   }
-
-  
-  // for (int i = 0; i < 10; i++)
-  //   {
-  //     win_put_pixel_xy(x, 0);
-  //     usleep(500000);
-  //     x += 2;
-  //   }
-// }

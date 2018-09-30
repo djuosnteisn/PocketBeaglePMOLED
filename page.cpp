@@ -48,9 +48,9 @@ void page_task(void)
       else
   	{
   	  i = 1;
-	  win_put_bmp_xy(0, 4, sc_name);
-	  //win_put_bmp_xy(0, 4, diag);
-	  //win_put_text_xy("BLA BLA", 0, 0, 100);
+	  //win_put_bmp_xy(0, 10, sc_name);
+	  //win_put_bmp_xy(0, 7, diag);
+	  win_put_text_xy("BLA BLA", 0, 10, 100);
   	}
       debounce = DEBOUNCE;
     }
