@@ -15,11 +15,15 @@ static struct tagFrame
   unsigned char dirty[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
 } frame;
 
-static void s_win_set_xy(unsigned char x, unsigned char y);
 static unsigned char s_win_get_row(unsigned char y_pix);
 static unsigned char s_win_get_row_off(unsigned char y_pix);
 
-/* create a P25317 obj for OLED interaction */
+
+/***********************************************/
+/* win_init                                    */
+/*                                             */
+/* Init various window parameters              */
+/***********************************************/
 void win_init(void)
 {
   // initialize our display driver
@@ -37,10 +41,14 @@ void win_init(void)
   s_trans = TRANS_OFF;
 }
 
-/* draw a single pixel at X and Y
-   X is col in pixels, 0 - 127
-   Y is row in pixels, 0 - 63
-*/
+
+/***********************************************/
+/* win_put_pixel_xy                            */
+/*                                             */
+/* draw a single pixel at X and Y              */
+/*   X is col in pixels, 0 - 127               */
+/*   Y is row in pixels, 0 - 63                */
+/***********************************************/
 void win_put_pixel_xy(unsigned char x, unsigned char y)
 {
   // get our page row from the y pixel
@@ -55,39 +63,70 @@ void win_put_pixel_xy(unsigned char x, unsigned char y)
   frame.dirty[x][row] = 1;
 }
 
-/* draw a line from X1 to X2 at row Y */
+
+/***********************************************/
+/* win_put_line_horz                           */
+/*                                             */
+/* draw a line from X1 to X2                   */
+/* at row Y                                    */
+/***********************************************/
 void win_put_line_horz(unsigned char x1, unsigned char x2, unsigned char y)
 {
 }
 
-/* draw a line from Y1 to Y2 at col X */
+
+/***********************************************/
+/* win_put_line_vert                           */
+/*                                             */
+/* draw a line from Y1 to Y2                   */
+/* at col X                                    */
+/***********************************************/
 void win_put_line_vert(unsigned char y1, unsigned char y2, unsigned char x)
 {
 }
 
-/* clear entire screen, either black or white (on or off) */
-void win_clear_screen(unsigned char on_off)
+
+/***********************************************/
+/* win_clear_screen                            */
+/*                                             */
+/* Clear entire screen, black if inverse is    */
+/* off, white if inverse is on                 */
+/***********************************************/
+void win_clear_screen(void)
 {
   disp.clear_screen(s_inverse);
 }
 
-/* draw a filled box from X1,Y1 to X2,Y2 */
+
+/***********************************************/
+/* win_put_box                                 */
+/*                                             */
+/* draw a filled box from X1, Y1 to X2, Y2     */
+/***********************************************/
 void win_put_box(unsigned char x1, unsigned char y1,
 		 unsigned char x2, unsigned char y2, unsigned char on_ff)
 {
 }
 
-/* draw an empty box (using win_put_line) from X1,Y1, to X2,Y2 */
+
+/***********************************************/
+/* win_put_box_empty                           */
+/*                                             */
+/* draw an empty box from X1, Y1, to X2, Y2    */
+/* (uses win_put_line)                         */
+/***********************************************/
 void win_put_box_empty(unsigned char x1, unsigned char y1,
 		       unsigned char x2, unsigned char y2)
 {
 }
 
 
-/* Draw a bitmap image, top left corner at X, Y.
-   This function updates our frame buffer, and uses it to build
-   a transfer buffer used to send to the display.
- */
+/***********************************************/
+/* win_put_bmp_xy                              */
+/*                                             */
+/* draws a bitmap image, top left corner at    */
+/* X, Y.                                       */
+/***********************************************/
 void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 {
   // get the row and offset values
@@ -171,13 +210,20 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 }
 
 
-/* Write text to the window with top left pixel at X, Y.
-   Replace any unsupported ascii characters with a '.'
-   and stop printing if it encounters the end field width
-   or end of the display. It's the responsibility of the
-   caller to ensure the string will fit on the screen;
-   out-of-bounds behavior is undefined.
-*/
+/***********************************************/
+/* win_put_text_xy                             */
+/*                                             */
+/* Write text to the window with top left      */
+/* pixel at X, Y. Replace any unsupported      */
+/* ascii characters with a '.' and stop        */
+/* printing if it encounters the end field     */
+/* width or end of the display. It's the       */
+/* callers responsibility to ensure the string */
+/* will fit on the screen. Out-of-bounds       */
+/* behavior is undefined.                      */
+/***********************************************/
+//NOTE need to implement width logic to stop
+// printing... TBD.
 void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned char width)
 {
   unsigned char chr, ascii_index, bytes_in_chr;
@@ -339,54 +385,35 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 }
 
 
-/* Write a single character to the window with top left pixel at X, Y.
-   It's the caller's responsibility to make sure the pixel fits on the
-   screen.
- */
-void win_put_char_xy(const char chr, unsigned char x, unsigned char y)
-{
-  unsigned char ascii_index, buf[s_font.bytes_per_char];
-  unsigned short font_index, bytes_in_chr;
-
-  // only print valid characters
-  if (chr < s_font.first_char || chr > s_font.last_char)
-    return;
-
-  // get proper indexes into our tables
-  ascii_index = chr - s_font.first_char;
-  font_index = ascii_index * s_font.bytes_per_char;
-  bytes_in_chr = (s_font.font_height / BITS_IN_BYTE) * s_font.font_width_table[ascii_index];
-
-  // set the starting X, Y based off active font height
-  disp.set_start_col(x);
-  disp.set_stop_col(x + s_font.font_width_table[ascii_index]);
-  disp.set_start_row(y);
-  disp.set_stop_row(y + (s_font.font_height / BITS_IN_BYTE) - 1);
-
-  for (int i = 0; i < bytes_in_chr; i++)
-    {
-      if (s_inverse == INVERSE_OFF)
-	buf[i] = s_font.font_table[font_index + i];
-      else
-	buf[i] = ~s_font.font_table[font_index + i];
-    }
-  disp.send_dat_cmd(buf, bytes_in_chr);
-}
-
-/* sets the font pointer to the desired font */
+/***********************************************/
+/* win_set_font                                */
+/*                                             */
+/* sets the font pointer to the desired font   */
+/***********************************************/
 void win_set_font(FONT_T font)
 {
   // make sure the font is legal first
   // maybe make a font_list and switch it
 }
 
-/* returns current fonts height in pixels */
+
+/***********************************************/
+/* win_get_font_height                         */
+/*                                             */
+/* returns the current font's height in pixels */
+/***********************************************/
 unsigned char win_get_font_height(void)
 {
   return s_font.font_height;
 }
 
-/* returns the length of a string in pixels for current font */
+
+/***********************************************/
+/* win_get_str_len                             */
+/*                                             */
+/* returns the lengt of a string in pixels for */
+/* current font                                */
+/***********************************************/
 unsigned char win_get_str_len(const char *str)
 {
   unsigned char buf_index = 0, chr, ascii_index;
@@ -409,30 +436,34 @@ unsigned char win_get_str_len(const char *str)
   return buf_index;
 }
 
-/* sets background color to white or black (on or off) */
-void win_set_bg_color(unsigned char on_off)
-{
-  char i = 0;
-}
 
-/* invert colors on display */
+/***********************************************/
+/* win_invert_color                            */
+/*                                             */
+/* invert the black white color                */
+/***********************************************/
 void win_invert_color(unsigned char inv)
 {
   s_inverse = inv? INVERSE_ON : INVERSE_OFF;
 }
 
-/* set the X and Y coords of display */
-void s_win_set_xy(unsigned char x, unsigned char y)
-{
-}
 
-/* return the page row for a pixel row */
+/***********************************************/
+/* s_win_get_row                               */
+/*                                             */
+/* return the page row for a pixel row         */
+/***********************************************/
 unsigned char s_win_get_row(unsigned char y_pix)
 {
   return y_pix / PIX_PER_ROW;
 }
 
-/* return the row offset for a pixel row */
+
+/***********************************************/
+/* s_win_get_row_off                           */
+/*                                             */
+/* return the row offset for a pixel row       */
+/***********************************************/
 unsigned char s_win_get_row_off(unsigned char y_pix)
 {
   return y_pix % PIX_PER_ROW;

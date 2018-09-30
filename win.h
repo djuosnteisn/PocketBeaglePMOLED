@@ -38,7 +38,7 @@ void win_put_line_horz(unsigned char x1, unsigned char x2, unsigned char pix_y);
 void win_put_line_vert(unsigned char pix_y1, unsigned char pix_y2, unsigned char x);
 
 /* clear entire screen, either black or white (on or off) */
-void win_clear_screen(unsigned char on_off);
+void win_clear_screen(void);
 
 /* draw a filled box from X1,Y1 to X2,Y2 */
 void win_put_box(unsigned char x1, unsigned char pix_y1,
@@ -54,9 +54,6 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp);
 /* write text to the window with top left pixel at X, Y */
 void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned char width);
 
-/* write a single character to the window with top left pixel at X, Y */
-void win_put_char_xy(const char chr, unsigned char x, unsigned char y);
-
 /* sets the font pointer to the desired font */
 void win_set_font(FONT_T font);
 
@@ -65,9 +62,6 @@ unsigned char win_get_font_height(void);
 
 /* returns the length of a string in pixels for current font */
 unsigned char win_get_str_len(const char *str);
-
-/* sets background color to white or black (on or off) */
-void win_set_bg_color(unsigned char on_off);
 
 /* invert colors on display */
 void win_invert_color(unsigned char inv);
