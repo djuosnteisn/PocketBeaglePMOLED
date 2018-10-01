@@ -11,7 +11,9 @@
 
 // logic macros
 #define BITS_IN_BYTE 8
+#define MIN_ROW 0
 #define MAX_ROW 7
+#define MIN_COL 0
 #define MAX_COL 127
 #define FRAME_WIDTH_PIX 128
 #define FRAME_HEIGHT_PIX 64
@@ -20,8 +22,8 @@
 #define INVERSE_ON 1
 #define INVERSE_OFF 0
 #define DEF_INVERSE INVERSE_OFF
-#define BLACK 0
-#define WHITE 1
+#define BLACK 0x00
+#define WHITE 0xff
 #define TRANS_OFF 0
 #define TRANS_ON 1
 

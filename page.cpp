@@ -39,7 +39,7 @@ void page_task(void)
   if (ev.event && !debounce--)
     {
       btns.reset_event();
-      win_clear_screen(BLACK);
+      win_clear_screen();
       if (i)
   	{
   	  i = 0;
@@ -50,7 +50,11 @@ void page_task(void)
   	  i = 1;
 	  //win_put_bmp_xy(0, 10, sc_name);
 	  //win_put_bmp_xy(0, 7, diag);
-	  win_put_text_xy("BLA BLA", 0, 10, 100);
+	  win_put_text_xy("BLA BLA", 10, 10, 100);
+	  unsigned char len = win_get_str_len("BLA BLA");
+	  win_put_line_horz(10, 10 + len, 27);
+	  win_put_box_empty(10, 30, 118, 60);
+	  win_put_box_empty(12, 32, 116, 58);
   	}
       debounce = DEBOUNCE;
     }

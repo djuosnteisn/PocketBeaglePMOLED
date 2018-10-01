@@ -8,12 +8,8 @@
 
 static P25317 disp(RST_PIN, CS_PIN, DAT_CTL_PIN);
 static FONT_T s_font;
-static unsigned char s_inverse = DEF_INVERSE, s_trans = TRANS_OFF;
-static struct tagFrame
-{
-  unsigned char buf[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
-  unsigned char dirty[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
-} frame;
+static unsigned char s_inverse = DEF_INVERSE, s_trans = TRANS_ON;
+unsigned char frame_buf[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
 
 static unsigned char s_win_get_row(unsigned char y_pix);
 static unsigned char s_win_get_row_off(unsigned char y_pix);
@@ -35,10 +31,7 @@ void win_init(void)
   // initialize our font pointer
   s_font = font_big;
   // initialize our frame
-  memset(frame.buf, 0, sizeof(frame.buf));
-  memset(frame.dirty, 0, sizeof(frame.dirty));
-  // init other things
-  s_trans = TRANS_OFF;
+  memset(frame_buf, 0, sizeof(frame_buf));
 }
 
 
@@ -57,10 +50,9 @@ void win_put_pixel_xy(unsigned char x, unsigned char y)
   unsigned char row_off = s_win_get_row_off(y);
   // write the pixel to our frame buf
   if (s_trans)
-    frame.buf[x][row] |= (1 << row_off);
+    frame_buf[x][row] |= (1 << row_off);
   else
-    frame.buf[x][row] = (1 << row_off);
-  frame.dirty[x][row] = 1;
+    frame_buf[x][row] = (1 << row_off);
 }
 
 
@@ -72,6 +64,42 @@ void win_put_pixel_xy(unsigned char x, unsigned char y)
 /***********************************************/
 void win_put_line_horz(unsigned char x1, unsigned char x2, unsigned char y)
 {
+  // get the row and offest values
+  unsigned char row = s_win_get_row(y);
+  unsigned char row_off = s_win_get_row_off(y);
+
+  // make sure it fits on the screen
+  if (x1 > MAX_COL)
+    x1 = MAX_COL;
+  if (x2 > MAX_COL)
+    x2 = MAX_COL;
+
+  // swap if necessary
+  if (x1 > x2)
+    {
+      unsigned char temp = x1;
+      x1 = x2;
+      x2 = temp;
+    }
+
+  // update our frame buf and build a transfer buf
+  unsigned char len = x2 - x1;
+  unsigned char transfer_buf[len];
+  for (int i = 0; i < len; i++)
+    {
+      if (s_trans)
+	frame_buf[x1 + i][row] |= (1 << row_off);
+      else
+	frame_buf[x1 + i][row] = (1 << row_off);
+      transfer_buf[i] = frame_buf[x1 + i][row];
+    }
+
+  // now set start and stop row/cols and send the data
+  disp.set_start_col(x1);
+  disp.set_stop_col(x2);
+  disp.set_start_row(row);
+  disp.set_stop_row(row);
+  disp.send_dat_cmd(transfer_buf, len);
 }
 
 
@@ -83,6 +111,53 @@ void win_put_line_horz(unsigned char x1, unsigned char x2, unsigned char y)
 /***********************************************/
 void win_put_line_vert(unsigned char y1, unsigned char y2, unsigned char x)
 {
+  // make sure it fits on the screen
+  if (y1 > (FRAME_HEIGHT_PIX - 1))
+    y1 = FRAME_HEIGHT_PIX - 1;
+  if (y2 > (FRAME_HEIGHT_PIX - 1))
+    y2 = FRAME_HEIGHT_PIX - 1;
+
+  // swap if necessary
+  if (y1 > y2)
+    {
+      unsigned char temp = y1;
+      y1 = y2;
+      y2 = y1;
+    }
+
+  // get the row and offset values
+  unsigned char row1 = s_win_get_row(y1);
+  unsigned char row_off1 = s_win_get_row_off(y1);
+  unsigned char row2 = s_win_get_row(y2);
+  unsigned char row_off2 = s_win_get_row_off(y2);
+  if (row_off2) // get second row
+    row2++;
+  
+  // update our frame buf and build a transfer buf
+  unsigned char len = row2 - row1;
+  unsigned char transfer_buf[len];
+  for (int i = 0; i < len; i++)
+    {
+      unsigned char byte = 0;
+      if (i == 0)
+	byte |= (0xFF << row_off1);
+      else
+	byte |= 0xFF;
+      if (i == (len - 1) && row_off2)
+	byte &= ~((unsigned char)0xFF << row_off2);
+      if (s_trans)
+	frame_buf[x][row1 + i] |= byte;
+      else
+	frame_buf[x][row1 + i] = byte;
+      transfer_buf[i] = frame_buf[x][row1 + i];
+    }
+
+  // now set start and stop row/cols and send the data
+  disp.set_start_col(x);
+  disp.set_stop_col(x);
+  disp.set_start_row(row1);
+  disp.set_stop_row(row2);
+  disp.send_dat_cmd(transfer_buf, len);
 }
 
 
@@ -94,6 +169,16 @@ void win_put_line_vert(unsigned char y1, unsigned char y2, unsigned char x)
 /***********************************************/
 void win_clear_screen(void)
 {
+  // clear our frame buf
+  if (s_inverse)
+    memset(frame_buf, WHITE, sizeof(frame_buf));
+  else
+    memset(frame_buf, BLACK, sizeof(frame_buf));
+  //set start and stop row/cols
+  disp.set_start_col(MIN_COL);
+  disp.set_stop_col(MAX_COL);
+  disp.set_start_row(MIN_ROW);
+  disp.set_stop_row(MAX_ROW);
   disp.clear_screen(s_inverse);
 }
 
@@ -118,6 +203,10 @@ void win_put_box(unsigned char x1, unsigned char y1,
 void win_put_box_empty(unsigned char x1, unsigned char y1,
 		       unsigned char x2, unsigned char y2)
 {
+  win_put_line_horz(x1, x2, y1);
+  win_put_line_horz(x1, x2, y2);
+  win_put_line_vert(y1, y2, x1);
+  win_put_line_vert(y1, y2, x2);
 }
 
 
@@ -152,20 +241,20 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 	      if (j == 0)
 		{
 		  if (s_trans)
-		    frame.buf[x + i][row + j] |= (bmp.image[index] << row_off);
+		    frame_buf[x + i][row + j] |= (bmp.image[index] << row_off);
 		  else
-		    frame.buf[x + i][row + j] = (bmp.image[index] << row_off);
+		    frame_buf[x + i][row + j] = (bmp.image[index] << row_off);
 		  ++index;
 		}
 	      // middle bytes
 	      else if (j < (row_height - 1))
 		{
 		  if (s_trans)
-		    frame.buf[x + i][row + j] |=
+		    frame_buf[x + i][row + j] |=
 		      ((bmp.image[index - 1] >> (BITS_IN_BYTE - row_off)) |
 		       (bmp.image[index] << row_off));
 		  else
-		    frame.buf[x + i][row + j] =
+		    frame_buf[x + i][row + j] =
 		      ((bmp.image[index - 1] >> (BITS_IN_BYTE - row_off)) |
 		       (bmp.image[index] << row_off));
 		  // don't inc index if it's the last part of bmp
@@ -176,12 +265,12 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 	      else
 		{
 		  if (s_trans)
-		    frame.buf[x + i][row + j] |= (bmp.image[index] >> (BITS_IN_BYTE - row_off));
+		    frame_buf[x + i][row + j] |= (bmp.image[index] >> (BITS_IN_BYTE - row_off));
 		  else
-		    frame.buf[x + i][row + j] = (bmp.image[index] >> (BITS_IN_BYTE - row_off));
+		    frame_buf[x + i][row + j] = (bmp.image[index] >> (BITS_IN_BYTE - row_off));
 		  ++index;
 		}
-	      transfer_buf[transfer_index++] = frame.buf[x + i][row + j];
+	      transfer_buf[transfer_index++] = frame_buf[x + i][row + j];
 	    }
 	}
       else // row aligned
@@ -190,11 +279,11 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 	  for (int j = 0; j < row_height; j++)
 	    {
 	      if (s_trans)
-		frame.buf[x + i][row + j] |= bmp.image[index];
+		frame_buf[x + i][row + j] |= bmp.image[index];
 	      else
-		frame.buf[x + i][row + j] = bmp.image[index];
+		frame_buf[x + i][row + j] = bmp.image[index];
 	      ++index;
-	      transfer_buf[transfer_index++] = frame.buf[x + i][row + j];
+	      transfer_buf[transfer_index++] = frame_buf[x + i][row + j];
 	    }
 	}
     }
@@ -269,19 +358,19 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 		      if (s_trans)
 			{
 			  if (s_inverse == INVERSE_OFF)
-			    frame.buf[f_index][row + k] |=
+			    frame_buf[f_index][row + k] |=
 			      (s_font.font_table[font_index] << row_off);
 			  else
-			    frame.buf[f_index][row + k] |=
+			    frame_buf[f_index][row + k] |=
 			      (~s_font.font_table[font_index] << row_off);
 			}
 		      else
 			{
 			  if (s_inverse == INVERSE_OFF)
-			    frame.buf[f_index][row + k] =
+			    frame_buf[f_index][row + k] =
 			      (s_font.font_table[font_index] << row_off);
 			  else
-			    frame.buf[f_index][row + k] =
+			    frame_buf[f_index][row + k] =
 			      (~s_font.font_table[font_index] << row_off);
 			}
 		      ++font_index;
@@ -292,22 +381,22 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 		      if (s_trans)
 			{
 			  if (s_inverse == INVERSE_OFF)
-			    frame.buf[f_index][row + k] |=
+			    frame_buf[f_index][row + k] |=
 			      (s_font.font_table[font_index] << row_off) |
 			      (s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
 			  else
-			    frame.buf[f_index][row + k] |=
+			    frame_buf[f_index][row + k] |=
 			      (~s_font.font_table[font_index] << row_off) |
 			      (~s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
 			}
 		      else
 			{
 			  if (s_inverse == INVERSE_OFF)
-			    frame.buf[f_index][row + k] =
+			    frame_buf[f_index][row + k] =
 			      (s_font.font_table[font_index] << row_off) |
 			      (s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
 			  else
-			    frame.buf[f_index][row + k] =
+			    frame_buf[f_index][row + k] =
 			      (~s_font.font_table[font_index] << row_off) |
 			      (~s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
 			}
@@ -320,24 +409,24 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 		      if (s_trans)
 			{
 			  if (s_inverse == INVERSE_OFF)
-			    frame.buf[f_index][row + k] |=
+			    frame_buf[f_index][row + k] |=
 			      (s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
 			  else
-			    frame.buf[f_index][row + k] |=
+			    frame_buf[f_index][row + k] |=
 			      (~s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
 			}
 		      else
 			{
 			  if (s_inverse == INVERSE_OFF)
-			    frame.buf[f_index][row + k] =
+			    frame_buf[f_index][row + k] =
 			      (s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
 			  else
-			    frame.buf[f_index][row + k] =
+			    frame_buf[f_index][row + k] =
 			      (~s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
 			}
 		      ++font_index;
 		    }
-		  transfer_buf[transfer_index++] = frame.buf[f_index][row + k];
+		  transfer_buf[transfer_index++] = frame_buf[f_index][row + k];
 		}
 	    }
 	  else // row aligned
@@ -348,19 +437,19 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 		  if (s_trans)
 		    {
 		      if (s_inverse == INVERSE_OFF)
-			frame.buf[f_index][row + k] |= s_font.font_table[font_index];
+			frame_buf[f_index][row + k] |= s_font.font_table[font_index];
 		      else
-			frame.buf[f_index][row + k] |= ~s_font.font_table[font_index];
+			frame_buf[f_index][row + k] |= ~s_font.font_table[font_index];
 		    }
 		  else
 		    {
 		      if (s_inverse == INVERSE_OFF)
-			frame.buf[f_index][row + k] = s_font.font_table[font_index];
+			frame_buf[f_index][row + k] = s_font.font_table[font_index];
 		      else
-			frame.buf[f_index][row + k] = ~s_font.font_table[font_index];
+			frame_buf[f_index][row + k] = ~s_font.font_table[font_index];
 		    }
 		  ++font_index;
-		  transfer_buf[transfer_index++] = frame.buf[f_index][row + k];
+		  transfer_buf[transfer_index++] = frame_buf[f_index][row + k];
 		}
 	    }
 	  ++f_index;
