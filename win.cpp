@@ -174,7 +174,7 @@ void win_clear_screen(void)
   disp.set_stop_col(MAX_COL);
   disp.set_start_row(MIN_ROW);
   disp.set_stop_row(MAX_ROW);
-  disp.clear_screen(s_inverse);
+  disp.clear_screen(BLACK);
 }
 
 
@@ -347,79 +347,60 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 	      // we need to merge offset bytes across row boundries
 	      for (k = 0; k < row_height; k++)
 		{
+		  /* calc the byte across boundries */
+		  unsigned char byte = 0;
 		  // top byte
 		  if (k == 0)
 		    {
-		      if (s_trans)
-		  	{
-		  	  if (s_inverse == INVERSE_OFF)
-		  	    frame_buf[f_index][row + k] |=
-		  	      (s_font->font_table[font_index] << row_off);
-		  	  else
-		  	    frame_buf[f_index][row + k] |=
-		  	      (~s_font->font_table[font_index] << row_off);
-		  	}
-		      else
-		  	{
-		  	  if (s_inverse == INVERSE_OFF)
-		  	    frame_buf[f_index][row + k] =
-		  	      (s_font->font_table[font_index] << row_off);
-		  	  else
-		  	    frame_buf[f_index][row + k] =
-		  	      (~s_font->font_table[font_index] << row_off);
-		  	}
+		      byte = s_font->font_table[font_index] << row_off;
 		      ++font_index;
 		    }
 		  // middle bytes
-		  else if (k < (row_height -1))
+		  else if (k < (row_height - 1))
 		    {
-		      if (s_trans)
-		  	{
-		  	  if (s_inverse == INVERSE_OFF)
-		  	    frame_buf[f_index][row + k] |=
-		  	      (s_font->font_table[font_index] << row_off) |
-		  	      (s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-		  	  else
-		  	    frame_buf[f_index][row + k] |=
-		  	      (~s_font->font_table[font_index] << row_off) |
-		  	      (~s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-		  	}
-		      else
-		  	{
-		  	  if (s_inverse == INVERSE_OFF)
-		  	    frame_buf[f_index][row + k] =
-		  	      (s_font->font_table[font_index] << row_off) |
-		  	      (s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-		  	  else
-		  	    frame_buf[f_index][row + k] =
-		  	      (~s_font->font_table[font_index] << row_off) |
-		  	      (~s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-		  	}
+		      byte = (s_font->font_table[font_index] << row_off) |
+			(s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
 		      if (k < (char_height - 1))
 		  	++font_index;
 		    }
 		  // bottom byte
 		  else
 		    {
-		      if (s_trans)
-		  	{
-		  	  if (s_inverse == INVERSE_OFF)
-		  	    frame_buf[f_index][row + k] |=
-		  	      (s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
-		  	  else
-		  	    frame_buf[f_index][row + k] |=
-		  	      (~s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
-		  	}
-		      else
-		  	{
-		  	  if (s_inverse == INVERSE_OFF)
-		  	    frame_buf[f_index][row + k] =
-		  	      (s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
-		  	  else
-		  	    frame_buf[f_index][row + k] =
-		  	      (~s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
-		  	}
+		      byte = s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off);
 		      ++font_index;
+		    }
+		  /* update frame buf */
+		  if (s_trans) // transparent
+		    {
+		      if (s_inverse) // inverted
+			{
+			  if (k == 0)
+			    frame_buf[f_index][row + k] |= ~byte & (0xFF << row_off);
+			  else if (k < (row_height - 1))
+			    frame_buf[f_index][row + k] |= ~byte;
+			  else
+			    frame_buf[f_index][row + k] |= ~byte & (0xFF >> (BITS_IN_BYTE - row_off));
+			}
+		      else
+			{
+			  frame_buf[f_index][row + k] |= byte;
+			}
+		    }
+		  else
+		    { // not transparent
+		      if (s_inverse) // inverted
+			{
+			  if (k == 0)
+			    frame_buf[f_index][row + k] = ~byte & (0xFF << row_off);
+			  else if (k < (row_height - 1))
+			    frame_buf[f_index][row + k] = ~byte;
+			  else
+			    frame_buf[f_index][row + k] = ~byte & (0xFF >> (BITS_IN_BYTE - row_off));
+			}
+		      else
+			{
+			  frame_buf[f_index][row + k] = byte;
+			}
 		    }
 		  transfer_buf[transfer_index++] = frame_buf[f_index][row + k];
 		}

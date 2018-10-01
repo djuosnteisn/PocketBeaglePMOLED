@@ -44,13 +44,13 @@ void page_task(void)
       switch (ev.event)
 	{
 	case BTN_EV_MENU:
-	  win_put_text_xy("Menu Press", 5, 20, FRAME_WIDTH_PIX);
+	  win_put_text_xy("Menu Press", 5, 24, FRAME_WIDTH_PIX);
 	  break;
 	case BTN_EV_BACK:
-	  win_put_text_xy("Back Press", 5, 20, FRAME_WIDTH_PIX);
+	  win_put_text_xy("Back Press", 5, 24, FRAME_WIDTH_PIX);
 	  break;
 	case BTN_EV_UP:
-	  win_put_text_xy("Up Press", 5, 20, FRAME_WIDTH_PIX);
+	  win_put_text_xy("Up Press", 5, 24, FRAME_WIDTH_PIX);
 	  break;
 	case BTN_EV_DN:
 	  win_put_text_xy("Down Press", 5, 20, FRAME_WIDTH_PIX);
@@ -61,6 +61,9 @@ void page_task(void)
 	    win_set_invert(0);
 	  else
 	    win_set_invert(1);
+	  break;
+	case BTN_EV_BACK | BTN_EV_DN:
+	  win_put_bmp_xy(33, 0, sc_circle);
 	  break;
 	default:
 	  win_put_text_xy("Unknown", 5, 20, FRAME_WIDTH_PIX);
