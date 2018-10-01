@@ -3,6 +3,8 @@
 #include "page.h"
 #include "btns.h"
 #include "win.h"
+// page includes
+#include "pages/page_main.h"
 //NOTE temporary
 #include "bmps.h"
 
@@ -22,87 +24,77 @@ void page_init(void)
 void page_task(void)
 {
 #define DEBOUNCE 4 // ~200ms
-  /*
-  while (btns.get_event())
+
+  BTN_EV ev = btns.get_event();
+  if (ev.btn)
     {
-      ev = EV_BTN;
-      page_on_event(s_cur_page, EV_BTN);
+      page_on_event(s_cur_page, EV_BTN,  ev.btn);
     }
   // post a refresh
-  page_on_event(s_cur_page, EV_REFRESH);
-  */
+  page_on_event(s_cur_page, EV_REFRESH, 0);
 
-  static unsigned char i = 0;
-  static unsigned int debounce = DEBOUNCE;
-  BTN_EV ev = btns.get_event();
+  
+  // static unsigned char i = 0;
+  // static unsigned int debounce = DEBOUNCE;
+  // BTN_EV ev = btns.get_event();
 
-  if (ev.event && !debounce--)
-    {
-      btns.reset_event();
-      debounce = DEBOUNCE;
-      win_clear_screen();
-      switch (ev.event)
-	{
-	case BTN_EV_MENU:
-	  win_put_text_xy("Menu Press", 5, 24, FRAME_WIDTH_PIX);
-	  break;
-	case BTN_EV_BACK:
-	  win_put_text_xy("Back Press", 5, 24, FRAME_WIDTH_PIX);
-	  break;
-	case BTN_EV_UP:
-	  win_put_text_xy("Up Press", 5, 24, FRAME_WIDTH_PIX);
-	  break;
-	case BTN_EV_DN:
-	  win_put_text_xy("Down Press", 5, 20, FRAME_WIDTH_PIX);
-	  break;
-	case BTN_EV_MENU | BTN_EV_UP:
-	  win_put_text_xy("Menu & Up", 5, 20, FRAME_WIDTH_PIX);
-	  if (win_get_invert())
-	    win_set_invert(0);
-	  else
-	    win_set_invert(1);
-	  break;
-	case BTN_EV_BACK | BTN_EV_DN:
-	  win_put_bmp_xy(33, 0, sc_circle);
-	  break;
-	default:
-	  win_put_text_xy("Unknown", 5, 20, FRAME_WIDTH_PIX);
-	  break;
-	}
-      // if (i)
-      // 	{
-      // 	  i = 0;
-      // 	  win_put_bmp_xy(33, 0, sc_circle);
-      // 	}
-      // else
-      // 	{
-      // 	  i = 1;
-      // 	  //win_put_bmp_xy(0, 10, sc_name);
-      // 	  //win_put_bmp_xy(0, 7, diag);
-      // 	  win_put_text_xy("BLA BLA", 10, 10, 100);
-      // 	  unsigned char len = win_get_str_len("BLA BLA");
-      // 	  win_put_line_horz(10, 10 + len, 27);
-      // 	  win_put_box_empty(10, 30, 118, 60);
-      // 	  win_put_box_empty(12, 32, 116, 58);
-      // 	}
-    }
+  // if (ev.event && !debounce--)
+  //   {
+  //     btns.reset_event();
+  //     debounce = DEBOUNCE;
+  //     win_clear_screen();
+  //     switch (ev.event)
+  // 	{
+  // 	case BTN_EV_MENU:
+  // 	  win_put_text_xy("Menu Press", 5, 24, FRAME_WIDTH_PIX);
+  // 	  break;
+  // 	case BTN_EV_BACK:
+  // 	  win_put_text_xy("Back Press", 5, 24, FRAME_WIDTH_PIX);
+  // 	  break;
+  // 	case BTN_EV_UP:
+  // 	  win_put_text_xy("Up Press", 5, 24, FRAME_WIDTH_PIX);
+  // 	  break;
+  // 	case BTN_EV_DN:
+  // 	  win_put_text_xy("Down Press", 5, 20, FRAME_WIDTH_PIX);
+  // 	  break;
+  // 	case BTN_EV_MENU | BTN_EV_UP:
+  // 	  win_put_text_xy("Menu & Up", 5, 20, FRAME_WIDTH_PIX);
+  // 	  if (win_get_invert())
+  // 	    win_set_invert(0);
+  // 	  else
+  // 	    win_set_invert(1);
+  // 	  break;
+  // 	case BTN_EV_BACK | BTN_EV_DN:
+  // 	  win_put_bmp_xy(33, 0, sc_circle);
+  // 	  break;
+  // 	default:
+  // 	  win_put_text_xy("Unknown", 5, 20, FRAME_WIDTH_PIX);
+  // 	  break;
+  // 	}
+  //   }
 }
 
 void page_show_page(pages page)
 {
-  page_on_event(page, EV_PAGE_ACTIVE);
+  page_on_event(page, EV_PAGE_ACTIVE, 0);
   s_cur_page = page;
 }
 
-void page_on_event(pages page, events ev)
+void page_on_event(pages page, events ev, unsigned char btn)
 {
   switch (page)
     {
     case PAGE_MAIN:
+      page_main_proc(ev, btn);
       break;
     case PAGE_EQ:
+      //page_eq_proc(ev, btn);
+      break;
+    case PAGE_CONTRAST:
+      //page_contrast_proc(ev, btn);
       break;
     case PAGE_ABOUT:
+      //page_about_proc(ev, btn);
       break;
     }
 }

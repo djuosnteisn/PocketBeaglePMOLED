@@ -26,9 +26,12 @@ enum events
 enum pages
   {
     PAGE_MAIN,
+    PAGE_MENU,
     PAGE_EQ,
+    PAGE_CONTRAST,
     PAGE_ABOUT
   };
+
 
 /* get a btns handle and init page stuff */
 void page_init(void);
@@ -40,6 +43,6 @@ void page_task(void);
 void page_show_page(pages page);
 
 /* handle various events */
-void page_on_event(pages page, events ev);
+void page_on_event(pages page, events ev, unsigned char btn);
 
 #endif // PAGE_H

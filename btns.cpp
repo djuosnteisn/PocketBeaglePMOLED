@@ -10,25 +10,25 @@ static
 
 int btn_callback_menu(int var)
 {
-  s_event.event |= BTN_EV_MENU;
+  s_event.btn |= BTN_MENU;
   return 0;
 }
 
 int btn_callback_back(int var)
 {
-  s_event.event |= BTN_EV_BACK;
+  s_event.btn |= BTN_BACK;
   return 0;
 }
 
 int btn_callback_up(int var)
 {
-  s_event.event |= BTN_EV_UP;
+  s_event.btn |= BTN_UP;
   return 0;
 }
 
 int btn_callback_dn(int var)
 {
-  s_event.event |= BTN_EV_DN;
+  s_event.btn |= BTN_DN;
   return 0;
 }
 
@@ -81,5 +81,5 @@ BTN_EV BTNS::get_event(void)
 
 void BTNS::reset_event(void)
 {
-  s_event.event = 0;
+  s_event.btn = 0;
 }
