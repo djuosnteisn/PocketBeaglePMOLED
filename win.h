@@ -66,9 +66,11 @@ unsigned char win_get_font_height(void);
 unsigned char win_get_str_len(const char *str);
 
 /* invert colors on display */
-void win_invert_color(unsigned char inv);
+void win_set_invert(unsigned char inv);
+unsigned char win_get_invert(void);
 
 /* set transparency */
 void win_set_transparent(unsigned char on_off);
+unsigned char win_get_transparent(void);
 
 #endif //WIN_H

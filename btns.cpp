@@ -8,9 +8,27 @@ using namespace exploringBB;
 static BTN_EV s_event;
 static
 
-int btn_callback(int var)
+int btn_callback_menu(int var)
 {
-  s_event.event = 1;
+  s_event.event |= BTN_EV_MENU;
+  return 0;
+}
+
+int btn_callback_back(int var)
+{
+  s_event.event |= BTN_EV_BACK;
+  return 0;
+}
+
+int btn_callback_up(int var)
+{
+  s_event.event |= BTN_EV_UP;
+  return 0;
+}
+
+int btn_callback_dn(int var)
+{
+  s_event.event |= BTN_EV_DN;
   return 0;
 }
 
@@ -42,10 +60,10 @@ BTNS::BTNS(int menu_pin, int back_pin, int up_pin, int dn_pin)
   up->setEdgeType(FALLING);
   dn->setEdgeType(FALLING);
 
-  menu->waitForEdge(&btn_callback);
-  back->waitForEdge(&btn_callback);
-  up->waitForEdge(&btn_callback);
-  dn->waitForEdge(&btn_callback);
+  menu->waitForEdge(&btn_callback_menu);
+  back->waitForEdge(&btn_callback_back);
+  up->waitForEdge(&btn_callback_up);
+  dn->waitForEdge(&btn_callback_dn);
 }
 
 BTNS::~BTNS()

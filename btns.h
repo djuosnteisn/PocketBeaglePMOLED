@@ -4,6 +4,11 @@
 
 using namespace exploringBB;
 
+#define BTN_EV_MENU 1
+#define BTN_EV_BACK 2
+#define BTN_EV_UP 4
+#define BTN_EV_DN 8
+
 typedef struct tagBTN_EV
 {
   unsigned char event;

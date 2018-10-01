@@ -7,7 +7,7 @@
 #include "bmps.h"
 
 static P25317 disp(RST_PIN, CS_PIN, DAT_CTL_PIN);
-static FONT_T s_font;
+static FONT_T const *s_font;
 static unsigned char s_inverse = DEF_INVERSE, s_trans = TRANS_ON;
 unsigned char frame_buf[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
 
@@ -29,7 +29,7 @@ void win_init(void)
   disp.enable_display(DISP_ENABLE);
   disp.clear_screen(BLACK);
   // initialize our font pointer
-  s_font = font_big;
+  s_font = &font_big;
   // initialize our frame
   memset(frame_buf, 0, sizeof(frame_buf));
 }
@@ -164,16 +164,11 @@ void win_put_line_vert(unsigned char y1, unsigned char y2, unsigned char x)
 /***********************************************/
 /* win_clear_screen                            */
 /*                                             */
-/* Clear entire screen, black if inverse is    */
-/* off, white if inverse is on                 */
+/* Clear entire screen                         */
 /***********************************************/
 void win_clear_screen(void)
 {
-  // clear our frame buf
-  if (s_inverse)
-    memset(frame_buf, WHITE, sizeof(frame_buf));
-  else
-    memset(frame_buf, BLACK, sizeof(frame_buf));
+  memset(frame_buf, BLACK, sizeof(frame_buf));
   //set start and stop row/cols
   disp.set_start_col(MIN_COL);
   disp.set_stop_col(MAX_COL);
@@ -316,114 +311,114 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned char width)
 {
   unsigned char chr, ascii_index, bytes_in_chr;
-  unsigned char transfer_buf[s_font.font_height / BITS_IN_BYTE * MAX_COL];
   unsigned short font_index, transfer_index = 0;
 
   // get the row and offset values
   unsigned char row = s_win_get_row(y), row_off = s_win_get_row_off(y);
   // character height = necessary bytes to cover font height, e.g. 10 pix = 2 bytes
-  unsigned char char_height = (s_font.font_height % BITS_IN_BYTE) ?
-    (s_font.font_height / BITS_IN_BYTE + 1) : (s_font.font_height / BITS_IN_BYTE);
+  unsigned char char_height = (s_font->font_height % BITS_IN_BYTE) ?
+    (s_font->font_height / BITS_IN_BYTE + 1) : (s_font->font_height / BITS_IN_BYTE);
   // if font isn't row aligned, need to print additional row
   unsigned char row_height = row_off ? char_height + 1 : char_height;
-  
 
+  unsigned char transfer_buf[((s_font->font_height / BITS_IN_BYTE) + 1) * MAX_COL];
   // get the total allowed num of bytes to copy over
-  unsigned short max_bytes = s_font.font_height / BITS_IN_BYTE * MAX_COL;
-
+  unsigned short max_bytes = s_font->font_height / BITS_IN_BYTE * MAX_COL;
   unsigned char f_index = x;
   unsigned short tot_width = 0;
+  int i, j, k;
   // build our kerned string buffer to be written
-  for (int i = 0; i < strlen(str); i++)
+  for (i = 0; i < strlen(str); i++)
     {
       // only print valid characters
-      if (str[i] < s_font.first_char || str[i] > s_font.last_char)
+      if (str[i] < s_font->first_char || str[i] > s_font->last_char)
 	chr = '.';
       else
 	chr = str[i];
       // get proper indexes into our tables
-      ascii_index = chr - s_font.first_char;
-      font_index = ascii_index * s_font.bytes_per_char;
+      ascii_index = chr - s_font->first_char;
+      font_index = ascii_index * s_font->bytes_per_char;
+      int width = s_font->font_width_table[ascii_index];
       // copy chars into our output buffer
-      for (int j = 0; j < s_font.font_width_table[ascii_index]; j++)
+      for (j = 0; j < width; j++)
 	{
 	  if (row_off) // not row aligned
 	    {
 	      // we need to merge offset bytes across row boundries
-	      for (int k = 0; k < row_height; k++)
+	      for (k = 0; k < row_height; k++)
 		{
 		  // top byte
 		  if (k == 0)
 		    {
 		      if (s_trans)
-			{
-			  if (s_inverse == INVERSE_OFF)
-			    frame_buf[f_index][row + k] |=
-			      (s_font.font_table[font_index] << row_off);
-			  else
-			    frame_buf[f_index][row + k] |=
-			      (~s_font.font_table[font_index] << row_off);
-			}
+		  	{
+		  	  if (s_inverse == INVERSE_OFF)
+		  	    frame_buf[f_index][row + k] |=
+		  	      (s_font->font_table[font_index] << row_off);
+		  	  else
+		  	    frame_buf[f_index][row + k] |=
+		  	      (~s_font->font_table[font_index] << row_off);
+		  	}
 		      else
-			{
-			  if (s_inverse == INVERSE_OFF)
-			    frame_buf[f_index][row + k] =
-			      (s_font.font_table[font_index] << row_off);
-			  else
-			    frame_buf[f_index][row + k] =
-			      (~s_font.font_table[font_index] << row_off);
-			}
+		  	{
+		  	  if (s_inverse == INVERSE_OFF)
+		  	    frame_buf[f_index][row + k] =
+		  	      (s_font->font_table[font_index] << row_off);
+		  	  else
+		  	    frame_buf[f_index][row + k] =
+		  	      (~s_font->font_table[font_index] << row_off);
+		  	}
 		      ++font_index;
 		    }
 		  // middle bytes
 		  else if (k < (row_height -1))
 		    {
 		      if (s_trans)
-			{
-			  if (s_inverse == INVERSE_OFF)
-			    frame_buf[f_index][row + k] |=
-			      (s_font.font_table[font_index] << row_off) |
-			      (s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-			  else
-			    frame_buf[f_index][row + k] |=
-			      (~s_font.font_table[font_index] << row_off) |
-			      (~s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-			}
+		  	{
+		  	  if (s_inverse == INVERSE_OFF)
+		  	    frame_buf[f_index][row + k] |=
+		  	      (s_font->font_table[font_index] << row_off) |
+		  	      (s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+		  	  else
+		  	    frame_buf[f_index][row + k] |=
+		  	      (~s_font->font_table[font_index] << row_off) |
+		  	      (~s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+		  	}
 		      else
-			{
-			  if (s_inverse == INVERSE_OFF)
-			    frame_buf[f_index][row + k] =
-			      (s_font.font_table[font_index] << row_off) |
-			      (s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-			  else
-			    frame_buf[f_index][row + k] =
-			      (~s_font.font_table[font_index] << row_off) |
-			      (~s_font.font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
-			}
+		  	{
+		  	  if (s_inverse == INVERSE_OFF)
+		  	    frame_buf[f_index][row + k] =
+		  	      (s_font->font_table[font_index] << row_off) |
+		  	      (s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+		  	  else
+		  	    frame_buf[f_index][row + k] =
+		  	      (~s_font->font_table[font_index] << row_off) |
+		  	      (~s_font->font_table[font_index - 1] >> (BITS_IN_BYTE - row_off));
+		  	}
 		      if (k < (char_height - 1))
-			++font_index;
+		  	++font_index;
 		    }
 		  // bottom byte
 		  else
 		    {
 		      if (s_trans)
-			{
-			  if (s_inverse == INVERSE_OFF)
-			    frame_buf[f_index][row + k] |=
-			      (s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
-			  else
-			    frame_buf[f_index][row + k] |=
-			      (~s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
-			}
+		  	{
+		  	  if (s_inverse == INVERSE_OFF)
+		  	    frame_buf[f_index][row + k] |=
+		  	      (s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
+		  	  else
+		  	    frame_buf[f_index][row + k] |=
+		  	      (~s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
+		  	}
 		      else
-			{
-			  if (s_inverse == INVERSE_OFF)
-			    frame_buf[f_index][row + k] =
-			      (s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
-			  else
-			    frame_buf[f_index][row + k] =
-			      (~s_font.font_table[font_index] >> (BITS_IN_BYTE - row_off));
-			}
+		  	{
+		  	  if (s_inverse == INVERSE_OFF)
+		  	    frame_buf[f_index][row + k] =
+		  	      (s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
+		  	  else
+		  	    frame_buf[f_index][row + k] =
+		  	      (~s_font->font_table[font_index] >> (BITS_IN_BYTE - row_off));
+		  	}
 		      ++font_index;
 		    }
 		  transfer_buf[transfer_index++] = frame_buf[f_index][row + k];
@@ -437,16 +432,16 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 		  if (s_trans)
 		    {
 		      if (s_inverse == INVERSE_OFF)
-			frame_buf[f_index][row + k] |= s_font.font_table[font_index];
+			frame_buf[f_index][row + k] |= s_font->font_table[font_index];
 		      else
-			frame_buf[f_index][row + k] |= ~s_font.font_table[font_index];
+			frame_buf[f_index][row + k] |= ~s_font->font_table[font_index];
 		    }
 		  else
 		    {
 		      if (s_inverse == INVERSE_OFF)
-			frame_buf[f_index][row + k] = s_font.font_table[font_index];
+			frame_buf[f_index][row + k] = s_font->font_table[font_index];
 		      else
-			frame_buf[f_index][row + k] = ~s_font.font_table[font_index];
+			frame_buf[f_index][row + k] = ~s_font->font_table[font_index];
 		    }
 		  ++font_index;
 		  transfer_buf[transfer_index++] = frame_buf[f_index][row + k];
@@ -493,14 +488,14 @@ void win_set_font(FONT_T font)
 /***********************************************/
 unsigned char win_get_font_height(void)
 {
-  return s_font.font_height;
+  return s_font->font_height;
 }
 
 
 /***********************************************/
 /* win_get_str_len                             */
 /*                                             */
-/* returns the lengt of a string in pixels for */
+/* returns the length of a string in pixels for */
 /* current font                                */
 /***********************************************/
 unsigned char win_get_str_len(const char *str)
@@ -512,14 +507,14 @@ unsigned char win_get_str_len(const char *str)
   for (int i = 0; i < strlen(str); i++)
     {
       // only print valid characters
-      if (str[i] < s_font.first_char || str[i] > s_font.last_char)
+      if (str[i] < s_font->first_char || str[i] > s_font->last_char)
 	chr = '.';
       else
 	chr = str[i];
       // get proper indexes into our tables
-      ascii_index = chr - s_font.first_char;
-      font_index = ascii_index * s_font.bytes_per_char;
-      buf_index += s_font.font_width_table[ascii_index];
+      ascii_index = chr - s_font->first_char;
+      font_index = ascii_index * s_font->bytes_per_char;
+      buf_index += s_font->font_width_table[ascii_index];
     }
 
   return buf_index;
@@ -527,13 +522,46 @@ unsigned char win_get_str_len(const char *str)
 
 
 /***********************************************/
-/* win_invert_color                            */
+/* win_set_invert                              */
 /*                                             */
 /* invert the black white color                */
 /***********************************************/
-void win_invert_color(unsigned char inv)
+void win_set_invert(unsigned char inv)
 {
   s_inverse = inv? INVERSE_ON : INVERSE_OFF;
+}
+
+
+/***********************************************/
+/* win_get_invert                              */
+/*                                             */
+/* return invert state                         */
+/***********************************************/
+unsigned char win_get_invert(void)
+{
+  return s_inverse? INVERSE_ON : INVERSE_OFF;
+}
+
+
+/***********************************************/
+/* win_set_transparent                         */
+/*                                             */
+/* leave existing pixles or not                */
+/***********************************************/
+void win_set_transparent(unsigned char trans)
+{
+  s_trans = trans? TRANS_ON : TRANS_OFF;
+}
+
+
+/***********************************************/
+/* win_get_transparent                         */
+/*                                             */
+/* return trans state                          */
+/***********************************************/
+unsigned char win_get_transparent(void)
+{
+  return  s_trans? TRANS_ON : TRANS_OFF;
 }
 
 
