@@ -43,12 +43,12 @@ void win_put_line_vert(unsigned char pix_y1, unsigned char pix_y2, unsigned char
 void win_clear_screen(void);
 
 /* draw a filled box from X1,Y1 to X2,Y2 */
-void win_put_box(unsigned char x1, unsigned char pix_y1,
-		 unsigned char x2, unsigned char pix_y2, unsigned char on_ff);
+void win_put_box(unsigned char x1, unsigned char y1,
+		 unsigned char x2, unsigned char y2);
 
 /* draw an empty box (using win_put_line) from X1,Y1, to X2,Y2 */
-void win_put_box_empty(unsigned char x1, unsigned char pix_y1,
-		       unsigned char x2, unsigned char pix_y2);
+void win_put_box_empty(unsigned char x1, unsigned char y1,
+		       unsigned char x2, unsigned char y2);
 
 /* draw a bitmap image, top left corner at X, Y */
 void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp);

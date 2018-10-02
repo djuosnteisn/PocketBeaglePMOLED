@@ -184,8 +184,80 @@ void win_clear_screen(void)
 /* draw a filled box from X1, Y1 to X2, Y2     */
 /***********************************************/
 void win_put_box(unsigned char x1, unsigned char y1,
-		 unsigned char x2, unsigned char y2, unsigned char on_ff)
+		 unsigned char x2, unsigned char y2)
 {
+  // make sure it fits on the screen
+  if (x1 > MAX_COL)
+    x1 = MAX_COL;
+  if (x2 > MAX_COL)
+    x2 = MAX_COL;
+  if (y1 > (FRAME_HEIGHT_PIX - 1))
+    y1 = FRAME_HEIGHT_PIX - 1;
+  if (y2 > (FRAME_HEIGHT_PIX - 1))
+    y2 = FRAME_HEIGHT_PIX - 1;
+
+  // swap if necessary
+  if (x1 > x2)
+    {
+      unsigned char temp = x1;
+      x1 = x2;
+      x2 = temp;
+    }
+  if (y1 > y2)
+    {
+      unsigned char temp = y1;
+      y1 = y2;
+      y2 = y1;
+    }
+
+  // get the row and offest values
+  unsigned char row1 = s_win_get_row(y1);
+  unsigned char row_off1 = s_win_get_row_off(y1);
+  unsigned char row2 = s_win_get_row(y2);
+  unsigned char row_off2 = s_win_get_row_off(y2);
+  if (row_off2) // get second row
+    row2++;
+  unsigned char row_height = row2 - row1;
+  unsigned char width = (x2 - x1);
+  // update our frame buf and build a transfer buf
+  unsigned char transfer_buf[width * row_height];
+  unsigned short transfer_index = 0;
+  printf("row_height:%d, width:%d\n", row_height, width);
+  for (int i = 0; i < width; i++)
+    {
+      for (int j = 0; j < row_height; j++)
+	{
+	  unsigned char byte = 0;
+	  if (j == 0)
+	    byte |= (0xFF << row_off1);
+	  else
+	    byte |= 0xFF;
+	  if (j == (row_height - 1) && row_off2)
+	    byte &= ~((unsigned char)0xFF << row_off2);
+	  if (s_trans)
+	    {
+	      if (s_inverse)
+		frame_buf[x1 + i][row1 + j] |= ~byte;
+	      else
+		frame_buf[x1 + i][row1 + j] |= byte;
+	    }
+	  else
+	    {
+	      if (s_inverse)
+		frame_buf[x1 + i][row1 + j] = ~byte;
+	      else
+		frame_buf[x1 + i][row1 + j] = byte;
+	    }
+	  transfer_buf[transfer_index++] = frame_buf[x1 + i][row1 + j];
+	}
+    }
+  printf("transfer_index:%d\n", transfer_index);
+  // now set start and stop row/cols and send the data
+  disp.set_start_col(x1);
+  disp.set_stop_col(x2);
+  disp.set_start_row(row1);
+  disp.set_stop_row(row2);
+  disp.send_dat_cmd(transfer_buf, transfer_index);
 }
 
 

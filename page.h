@@ -27,8 +27,11 @@ enum pages
   {
     PAGE_MAIN,
     PAGE_MENU,
+    // menu pages
     PAGE_EQ,
+    PAGE_VOL,
     PAGE_CONTRAST,
+    PAGE_TEST,
     PAGE_ABOUT
   };
 

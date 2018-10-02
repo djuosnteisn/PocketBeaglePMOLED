@@ -5,6 +5,7 @@
 #include "win.h"
 // page includes
 #include "pages/page_main.h"
+#include "pages/page_menu.h"
 //NOTE temporary
 #include "bmps.h"
 
@@ -29,49 +30,11 @@ void page_task(void)
   if (ev.btn)
     {
       page_on_event(s_cur_page, EV_BTN,  ev.btn);
+      // clear the event
+      btns.reset_event();
     }
   // post a refresh
   page_on_event(s_cur_page, EV_REFRESH, 0);
-
-  
-  // static unsigned char i = 0;
-  // static unsigned int debounce = DEBOUNCE;
-  // BTN_EV ev = btns.get_event();
-
-  // if (ev.event && !debounce--)
-  //   {
-  //     btns.reset_event();
-  //     debounce = DEBOUNCE;
-  //     win_clear_screen();
-  //     switch (ev.event)
-  // 	{
-  // 	case BTN_EV_MENU:
-  // 	  win_put_text_xy("Menu Press", 5, 24, FRAME_WIDTH_PIX);
-  // 	  break;
-  // 	case BTN_EV_BACK:
-  // 	  win_put_text_xy("Back Press", 5, 24, FRAME_WIDTH_PIX);
-  // 	  break;
-  // 	case BTN_EV_UP:
-  // 	  win_put_text_xy("Up Press", 5, 24, FRAME_WIDTH_PIX);
-  // 	  break;
-  // 	case BTN_EV_DN:
-  // 	  win_put_text_xy("Down Press", 5, 20, FRAME_WIDTH_PIX);
-  // 	  break;
-  // 	case BTN_EV_MENU | BTN_EV_UP:
-  // 	  win_put_text_xy("Menu & Up", 5, 20, FRAME_WIDTH_PIX);
-  // 	  if (win_get_invert())
-  // 	    win_set_invert(0);
-  // 	  else
-  // 	    win_set_invert(1);
-  // 	  break;
-  // 	case BTN_EV_BACK | BTN_EV_DN:
-  // 	  win_put_bmp_xy(33, 0, sc_circle);
-  // 	  break;
-  // 	default:
-  // 	  win_put_text_xy("Unknown", 5, 20, FRAME_WIDTH_PIX);
-  // 	  break;
-  // 	}
-  //   }
 }
 
 void page_show_page(pages page)
@@ -86,6 +49,9 @@ void page_on_event(pages page, events ev, unsigned char btn)
     {
     case PAGE_MAIN:
       page_main_proc(ev, btn);
+      break;
+    case PAGE_MENU:
+      page_menu_proc(ev, btn);
       break;
     case PAGE_EQ:
       //page_eq_proc(ev, btn);
