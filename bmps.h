@@ -5,6 +5,9 @@ extern "C" {
 #ifndef BMPS_H
 #define BMPS_H
 
+  // macros for bluetooth bmp
+  #define BT_LEVELS 6
+  #define BT_BMP_BYTE_SIZE 60
 
   /* bitmap data structure */
   typedef struct tagBMP_T
@@ -17,6 +20,14 @@ extern "C" {
   /* bmp images */
   const extern BMP_T sc_circle;
   const extern BMP_T sc_name;
+  const extern BMP_T hp_l;
+  const extern BMP_T hp_r;
+  const extern BMP_T BTSignal0;
+  const extern BMP_T BTSignal1;
+  const extern BMP_T BTSignal2;
+  const extern BMP_T BTSignal3;
+  const extern BMP_T BTSignal4;
+  const extern BMP_T BTSignal5;
   //NOTE diag
   const extern BMP_T diag;
 
