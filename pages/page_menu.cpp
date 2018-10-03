@@ -155,8 +155,7 @@ static const unsigned char TEXT_Y_SPACING = 16;
 
 static void page_menu_draw_text(void)
 {
-  unsigned char i;
-  unsigned char y;
+  unsigned char i, y, temp;
 
   /* configure window parameters */
   win_set_invert(INVERSE_OFF);
@@ -166,8 +165,9 @@ static void page_menu_draw_text(void)
     {
       y = TEXT_Y_TOP + (i * TEXT_Y_SPACING);
       // clear the row
+      temp = win_get_str_len(s_menu[i + s_offset].str);
       win_set_invert(INVERSE_ON);
-      win_put_box(TEXT_X, y, MAX_COL, y + TEXT_Y_SPACING - 1);
+      win_put_box(TEXT_X + temp, y, MAX_COL, y + TEXT_Y_SPACING);
       // invert selected item
       if (i == s_sel - s_offset)
 	win_set_invert(INVERSE_ON);

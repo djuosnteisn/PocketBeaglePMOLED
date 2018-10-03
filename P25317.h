@@ -6,7 +6,7 @@ using namespace exploringBB;
 
 // SPI macros
 #define SPI_MODE 3
-#define SPI_SPEED 2000000
+#define SPI_SPEED 4000000
 #define SPI_BITS 8
 #define SPI_DEV_PATH "/dev/spidev1.0"
 

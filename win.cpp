@@ -187,14 +187,14 @@ void win_put_box(unsigned char x1, unsigned char y1,
 		 unsigned char x2, unsigned char y2)
 {
   // make sure it fits on the screen
-  if (x1 > MAX_COL)
+  if (x1 > MAX_COL + 1)
     x1 = MAX_COL;
-  if (x2 > MAX_COL)
+  if (x2 > MAX_COL + 1)
     x2 = MAX_COL;
-  if (y1 > (FRAME_HEIGHT_PIX - 1))
-    y1 = FRAME_HEIGHT_PIX - 1;
-  if (y2 > (FRAME_HEIGHT_PIX - 1))
-    y2 = FRAME_HEIGHT_PIX - 1;
+  if (y1 > FRAME_HEIGHT_PIX)
+    y1 = FRAME_HEIGHT_PIX;
+  if (y2 > FRAME_HEIGHT_PIX)
+    y2 = FRAME_HEIGHT_PIX;
 
   // swap if necessary
   if (x1 > x2)
@@ -219,45 +219,45 @@ void win_put_box(unsigned char x1, unsigned char y1,
     row2++;
   unsigned char row_height = row2 - row1;
   unsigned char width = (x2 - x1);
+
   // update our frame buf and build a transfer buf
-  unsigned char transfer_buf[width * row_height];
+  unsigned char transfer_buf[width];
   unsigned short transfer_index = 0;
-  printf("row_height:%d, width:%d\n", row_height, width);
-  for (int i = 0; i < width; i++)
+
+  for (int i = 0; i < row_height; i++)
     {
-      for (int j = 0; j < row_height; j++)
+      unsigned char byte = 0;
+      if (i == 0)
+	byte |= (0xFF << row_off1);
+      else
+	byte |= 0xFF;
+      if (i == (row_height - 1) && row_off2)
+	byte &= ~((unsigned char)0xFF << row_off2);
+      for (int j = 0; j < width; j++)
 	{
-	  unsigned char byte = 0;
-	  if (j == 0)
-	    byte |= (0xFF << row_off1);
-	  else
-	    byte |= 0xFF;
-	  if (j == (row_height - 1) && row_off2)
-	    byte &= ~((unsigned char)0xFF << row_off2);
 	  if (s_trans)
 	    {
 	      if (s_inverse)
-		frame_buf[x1 + i][row1 + j] |= ~byte;
+		frame_buf[x1 + j][row1 + i] &= ~byte;
 	      else
-		frame_buf[x1 + i][row1 + j] |= byte;
+		frame_buf[x1 + j][row1 + i] |= byte;
 	    }
 	  else
 	    {
 	      if (s_inverse)
-		frame_buf[x1 + i][row1 + j] = ~byte;
+		frame_buf[x1 + j][row1 + i] = ~byte;
 	      else
-		frame_buf[x1 + i][row1 + j] = byte;
+		frame_buf[x1 + j][row1 + i] = byte;
 	    }
-	  transfer_buf[transfer_index++] = frame_buf[x1 + i][row1 + j];
+	  transfer_buf[j] = frame_buf[x1 + j][row1 + i];
 	}
+      // send the rows worth of data
+      disp.set_start_col(x1);
+      disp.set_stop_col(x2);
+      disp.set_start_row(row1 + i);
+      disp.set_stop_row(row1 + i);
+      disp.send_dat_cmd(transfer_buf, width);
     }
-  printf("transfer_index:%d\n", transfer_index);
-  // now set start and stop row/cols and send the data
-  disp.set_start_col(x1);
-  disp.set_stop_col(x2);
-  disp.set_start_row(row1);
-  disp.set_stop_row(row2);
-  disp.send_dat_cmd(transfer_buf, transfer_index);
 }
 
 

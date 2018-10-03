@@ -24,7 +24,7 @@ void page_init(void)
 */
 void page_task(void)
 {
-#define DEBOUNCE 4 // ~200ms
+#define DEBOUNCE 5 // ~250ms
 
   BTN_EV ev = btns.get_event();
   if (ev.btn)

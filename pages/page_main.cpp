@@ -92,20 +92,16 @@ void page_main_on_event(unsigned char btn)
     {
       /* up/down buttons */
     case BTN_UP:
-      printf("UP PRESSED\n");
       //NOTE make vol increase
       break;
     case BTN_DN:
-      printf("DOWN PRESSED\n");
       //NOTE make vol decrease
       break;
       /* menu & back buttons */
     case BTN_MENU:
-      printf("MENU PRESSED\n");
       page_show_page(PAGE_MENU);
       break;
     case BTN_BACK:
-      printf("BACK PRESSED\n");
       break;
     }
 }
@@ -124,7 +120,6 @@ static void page_main_draw_title(void)
   unsigned int temp = win_get_str_len(str_title) / 2;
 
   win_put_text_xy(str_title, TITLE_X - temp, TITLE_Y, FRAME_WIDTH_PIX);
-  win_put_box(10, 24, 34, 48);
 }
 
 /**************************************************
