@@ -1,7 +1,7 @@
 /*
   page_main.c
 */
-
+#include <stdlib.h> // rand
 #include "page_main.h"
 #include "../page.h"
 #include "../win.h"
@@ -14,6 +14,10 @@
 /**************/
 /*   locals   */
 /**************/
+unsigned char s_l_audio_meter = 0;
+unsigned char s_r_audio_meter = 0;
+unsigned char s_rf_meter = 0;
+unsigned char s_batt_meter = 0;
 
 /*****************/
 /*   functions   */
@@ -22,10 +26,11 @@
 void page_main_on_active(void);
 void page_main_on_refresh(void);
 static void page_main_on_event(unsigned char btn);
-static void page_main_draw_title(void);
+static void page_main_draw_text(void);
 static void page_main_draw_rf(void);
 static void page_main_draw_audio(void);
 static void page_main_draw_batt(void);
+static void page_main_fake_meters(void);
 
 /**************************************************
   page_main_proc
@@ -62,7 +67,7 @@ void page_main_on_active(void)
   win_clear_screen();
 
   //update disp
-  page_main_draw_title();
+  page_main_draw_text();
   page_main_draw_rf();
   page_main_draw_audio();
   page_main_draw_batt();
@@ -76,9 +81,10 @@ void page_main_on_active(void)
 
 void page_main_on_refresh(void)
 {
-    page_main_draw_rf();
-    page_main_draw_audio();
-    page_main_draw_batt();
+  page_main_fake_meters();
+  page_main_draw_rf();
+  page_main_draw_audio();
+  page_main_draw_batt();
 }
 
 /**************************************************
@@ -107,24 +113,101 @@ void page_main_on_event(unsigned char btn)
 }
 
 /**************************************************
-  page_main_draw_title
+  page_main_draw_text
 
-  draw title at top of page
+  draw text objects
+***************************************************/
+static const unsigned char SONG_X = 0;
+static const unsigned char SONG_Y = 24;
+static const unsigned char EQ_X = 0;
+static const unsigned char EQ_Y = 48;
+
+static void page_main_draw_text(void)
+{
+
+  // draw song name
+  win_put_text_xy("Song Name", SONG_X, SONG_Y, MAX_COL);
+
+
+  // put eq mode
+  win_put_text_xy("EQ:Cust", EQ_X, EQ_Y, MAX_COL);
+}
+
+/**************************************************
+  page_main_draw_rf_meters
+
+  draw various RF meters: RSSI, Ant Diversity, etc
+***************************************************/
+// BT RF meter
+static const unsigned char BT_X = 97;
+static const unsigned char BT_Y = 0;
+
+static void page_main_draw_rf(void)
+{
+  win_set_inverse(INVERSE_OFF);
+  win_set_transparent(TRANS_OFF);
+
+  switch (s_rf_meter)
+    {
+    case 0:
+      win_put_bmp_xy(BT_X, BT_Y, BTSignal0);
+      break;
+    case 1:
+      win_put_bmp_xy(BT_X, BT_Y, BTSignal1);
+      break;
+    case 2:
+      win_put_bmp_xy(BT_X, BT_Y, BTSignal2);
+      break;
+    case 3:
+      win_put_bmp_xy(BT_X, BT_Y, BTSignal3);
+      break;
+    case 4:
+      win_put_bmp_xy(BT_X, BT_Y, BTSignal4);
+      break;
+    case 5:
+      win_put_bmp_xy(BT_X, BT_Y, BTSignal5);
+      break;
+    }
+  win_set_transparent(TRANS_ON);
+}
+
+/**************************************************
+  page_main_draw_audio_meters
+
+  draw audio meter boxes
 ***************************************************/
 // audio meters
 static const unsigned char LR_X = 0;
 static const unsigned char L_Y = 0;
 static const unsigned char R_Y = 8;
 static const unsigned char AUD_X1 = LR_X + hp_l.width;
-static const unsigned char AUDL_X2 = AUD_X1 + 80;
-static const unsigned char AUDR_X2 = AUD_X1 + 70;
+static const unsigned char AUD_X2 = AUD_X1 + 80;
 static const unsigned char AUDL_Y1 = L_Y;
-static const unsigned char AUDL_Y2 = L_Y + hp_l.height - 1;
+static const unsigned char AUDL_Y2 = L_Y + hp_l.height - 2;
 static const unsigned char AUDR_Y1 = R_Y;
-static const unsigned char AUDR_Y2 = R_Y + hp_r.height - 1;
-// BT RF meter
-static const unsigned char BT_X = 97;
-static const unsigned char BT_Y = 0;
+static const unsigned char AUDR_Y2 = R_Y + hp_r.height - 2;
+
+void page_main_draw_audio(void)
+{
+  // clear old meters
+  win_set_inverse(INVERSE_ON);
+  win_put_box(AUD_X1, AUDL_Y1, AUD_X2, AUDR_Y2);
+  win_set_inverse(INVERSE_OFF);
+
+  // draw icons
+  win_put_bmp_xy(LR_X, L_Y, hp_l);
+  win_put_bmp_xy(LR_X, R_Y, hp_r);
+
+  // draw fake audio boxes
+  win_put_box(AUD_X1, AUDL_Y1, AUD_X1 + s_l_audio_meter, AUDL_Y2);
+  win_put_box(AUD_X1, AUDR_Y1, AUD_X1 + s_r_audio_meter, AUDR_Y2);
+}
+
+/**************************************************
+  page_main_draw_batt
+
+  draw battery meter
+***************************************************/
 // battery meters
 static const unsigned char BATT_TIP_X1 = 119;
 static const unsigned char BATT_TIP_X2 = 123;
@@ -139,55 +222,56 @@ static const unsigned char BATT_MID_Y2 = 56;
 static const unsigned char BATT_BOT_Y1 = 58;
 static const unsigned char BATT_BOT_Y2 = 63;
 
-static void page_main_draw_title(void)
-{
-  // draw icons
-  win_put_bmp_xy(LR_X, L_Y, hp_l);
-  win_put_bmp_xy(LR_X, R_Y, hp_r);
-  win_put_bmp_xy(BT_X, BT_Y, BTSignal3);
-
-  // draw fake audio boxes
-  win_put_box(AUD_X1, AUDL_Y1, AUDL_X2, AUDL_Y2);
-  win_put_box(AUD_X1, AUDR_Y1, AUDR_X2, AUDR_Y2);
-
-  // draw song name
-  win_put_text_xy("Song Name", 0, 24, MAX_COL);
-
-  // draw battery icon
-  win_put_box_empty(BATT_TIP_X1, BATT_TIP_Y1, BATT_TIP_X2, BATT_TIP_Y2);
-  win_put_box_empty(BATT_X1, BATT_TOP_Y1, BATT_X2, BATT_TOP_Y2);
-  win_put_box(BATT_X1, BATT_MID_Y1, BATT_X2, BATT_MID_Y2);
-  win_put_box(BATT_X1, BATT_BOT_Y1, BATT_X2, BATT_BOT_Y2);
-
-  // put eq mode
-  win_put_text_xy("EQ:Cust", 0, 48, MAX_COL);
-}
-
-/**************************************************
-  page_main_draw_rf_meters
-
-  draw various RF meters: RSSI, Ant Diversity, etc
-***************************************************/
-static void page_main_draw_rf(void)
-{
-}
-
-/**************************************************
-  page_main_draw_audio_meters
-
-  draw audio meter boxes
-***************************************************/
-
-void page_main_draw_audio(void)
-{
-}
-
-/**************************************************
-  page_main_draw_batt
-
-  draw battery meter
-***************************************************/
-
 void page_main_draw_batt(void)
 {
+  // just the tip
+  win_put_box_empty(BATT_TIP_X1, BATT_TIP_Y1, BATT_TIP_X2, BATT_TIP_Y2);
+
+  // clear old meters
+  win_set_inverse(INVERSE_ON);
+  win_put_box(BATT_X1, BATT_TOP_Y1, BATT_X2, BATT_BOT_Y2);
+  win_set_inverse(INVERSE_OFF);
+  
+  // rest of meter
+  if (s_batt_meter > 0)
+    win_put_box(BATT_X1, BATT_BOT_Y1, BATT_X2, BATT_BOT_Y2);
+  else
+    win_put_box_empty(BATT_X1, BATT_BOT_Y1, BATT_X2, BATT_BOT_Y2);
+
+  if (s_batt_meter > 1)
+    win_put_box(BATT_X1, BATT_MID_Y1, BATT_X2, BATT_MID_Y2);
+  else
+    win_put_box_empty(BATT_X1, BATT_MID_Y1, BATT_X2, BATT_MID_Y2);
+
+  if (s_batt_meter > 2)
+    win_put_box (BATT_X1, BATT_TOP_Y1, BATT_X2, BATT_TOP_Y2);
+  else
+    win_put_box_empty(BATT_X1, BATT_TOP_Y1, BATT_X2, BATT_TOP_Y2);
+}
+
+/**************************************************
+  page_main_fake_meters
+
+  update values for all the meters
+***************************************************/
+static const unsigned char AUDIO_METER_MAX = 81; // 0 - 80
+static const unsigned char RF_METER_MAX = 6; // 0 - 5
+static const unsigned char BATT_METER_MAX = 4; // 0 - 3
+
+void page_main_fake_meters(void)
+{
+  static unsigned int count = 0;
+
+  // audio L
+  s_l_audio_meter = rand() % AUDIO_METER_MAX;
+  srand(++count);
+  // audio R
+  s_r_audio_meter = rand() % AUDIO_METER_MAX;
+  srand(++count);
+  // rf meter
+  s_rf_meter = rand() % RF_METER_MAX;
+  srand(++count);
+  // battery meter
+  s_batt_meter = rand() % BATT_METER_MAX;
+  srand(++count);
 }

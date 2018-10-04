@@ -68,12 +68,6 @@ void win_put_line_horz(unsigned char x1, unsigned char x2, unsigned char y)
   unsigned char row = s_win_get_row(y);
   unsigned char row_off = s_win_get_row_off(y);
 
-  // make sure it fits on the screen
-  if (x1 > MAX_COL)
-    x1 = MAX_COL;
-  if (x2 > MAX_COL)
-    x2 = MAX_COL;
-
   // swap if necessary
   if (x1 > x2)
     {
@@ -81,6 +75,15 @@ void win_put_line_horz(unsigned char x1, unsigned char x2, unsigned char y)
       x1 = x2;
       x2 = temp;
     }
+
+  // x2 is inclusive
+  x2++;
+  
+  // make sure it fits on the screen
+  if (x1 > MAX_COL)
+    x1 = MAX_COL;
+  if (x2 > MAX_COL)
+    x2 = MAX_COL;
 
   // update our frame buf and build a transfer buf
   unsigned char len = x2 - x1;
@@ -111,12 +114,6 @@ void win_put_line_horz(unsigned char x1, unsigned char x2, unsigned char y)
 /***********************************************/
 void win_put_line_vert(unsigned char y1, unsigned char y2, unsigned char x)
 {
-  // make sure it fits on the screen
-  if (y1 > (FRAME_HEIGHT_PIX - 1))
-    y1 = FRAME_HEIGHT_PIX - 1;
-  if (y2 > (FRAME_HEIGHT_PIX - 1))
-    y2 = FRAME_HEIGHT_PIX - 1;
-
   // swap if necessary
   if (y1 > y2)
     {
@@ -124,6 +121,15 @@ void win_put_line_vert(unsigned char y1, unsigned char y2, unsigned char x)
       y1 = y2;
       y2 = y1;
     }
+
+  // y2 is inclusive
+  y2++;
+
+  // make sure it fits on the screen
+  if (y1 > (FRAME_HEIGHT_PIX - 1))
+    y1 = FRAME_HEIGHT_PIX - 1;
+  if (y2 > (FRAME_HEIGHT_PIX - 1))
+    y2 = FRAME_HEIGHT_PIX - 1;
 
   // get the row and offset values
   unsigned char row1 = s_win_get_row(y1);
@@ -186,16 +192,6 @@ void win_clear_screen(void)
 void win_put_box(unsigned char x1, unsigned char y1,
 		 unsigned char x2, unsigned char y2)
 {
-  // make sure it fits on the screen
-  if (x1 > MAX_COL + 1)
-    x1 = MAX_COL;
-  if (x2 > MAX_COL + 1)
-    x2 = MAX_COL;
-  if (y1 > FRAME_HEIGHT_PIX)
-    y1 = FRAME_HEIGHT_PIX;
-  if (y2 > FRAME_HEIGHT_PIX)
-    y2 = FRAME_HEIGHT_PIX;
-
   // swap if necessary
   if (x1 > x2)
     {
@@ -209,6 +205,20 @@ void win_put_box(unsigned char x1, unsigned char y1,
       y1 = y2;
       y2 = y1;
     }
+
+  // x2 and y2 are inclusive
+  x2++;
+  y2++;
+
+  // make sure it fits on the screen
+  if (x1 > MAX_COL + 1)
+    x1 = MAX_COL;
+  if (x2 > MAX_COL + 1)
+    x2 = MAX_COL;
+  if (y1 > FRAME_HEIGHT_PIX)
+    y1 = FRAME_HEIGHT_PIX;
+  if (y2 > FRAME_HEIGHT_PIX)
+    y2 = FRAME_HEIGHT_PIX;
 
   // get the row and offest values
   unsigned char row1 = s_win_get_row(y1);
@@ -575,11 +585,11 @@ unsigned char win_get_str_len(const char *str)
 
 
 /***********************************************/
-/* win_set_invert                              */
+/* win_set_inverse                             */
 /*                                             */
 /* invert the black white color                */
 /***********************************************/
-void win_set_invert(unsigned char inv)
+void win_set_inverse(unsigned char inv)
 {
   s_inverse = inv? INVERSE_ON : INVERSE_OFF;
 }

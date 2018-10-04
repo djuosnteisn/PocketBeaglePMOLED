@@ -12,6 +12,6 @@ int main(void)
   while (1)
     {
       page_task();
-      usleep(50000);
+      usleep(100000);
     }
 }
