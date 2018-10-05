@@ -9,6 +9,7 @@
 static P25317 disp(RST_PIN, CS_PIN, DAT_CTL_PIN);
 static FONT_T const *s_font;
 static unsigned char s_inverse = DEF_INVERSE, s_trans = TRANS_ON;
+static unsigned char s_contrast;
 unsigned char frame_buf[FRAME_WIDTH_PIX][FRAME_HEIGHT_ROW];
 
 static unsigned char s_win_get_row(unsigned char y_pix);
@@ -32,6 +33,7 @@ void win_init(void)
   s_font = &font_big;
   // initialize our frame
   memset(frame_buf, 0, sizeof(frame_buf));
+  s_contrast = disp.get_contrast();
 }
 
 
@@ -390,7 +392,7 @@ void win_put_bmp_xy(unsigned char x, unsigned char y, BMP_T bmp)
 /***********************************************/
 //NOTE need to implement width logic to stop
 // printing... TBD.
-void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned char width)
+void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned char max_width)
 {
   unsigned char chr, ascii_index, bytes_in_chr;
   unsigned short font_index, transfer_index = 0;
@@ -421,6 +423,9 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
       ascii_index = chr - s_font->first_char;
       font_index = ascii_index * s_font->bytes_per_char;
       int width = s_font->font_width_table[ascii_index];
+      // // break if the width is getting too large
+      // if (tot_width + width > max_width)
+      // 	break;
       // copy chars into our output buffer
       for (j = 0; j < width; j++)
 	{
@@ -512,7 +517,13 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 	    }
 	  ++f_index;
 	  ++tot_width;
+	  // break if the width is getting too large
+	  if (tot_width + width > max_width)
+	    break;
 	}
+      // break if the width is getting too large
+      if (tot_width + width > max_width)
+	break;
     }
 
   /* now that the frame buf is updated, let's write the disp */
@@ -647,4 +658,26 @@ unsigned char s_win_get_row(unsigned char y_pix)
 unsigned char s_win_get_row_off(unsigned char y_pix)
 {
   return y_pix % PIX_PER_ROW;
+}
+
+
+/***********************************************/
+/* win_set_contrast                            */
+/*                                             */
+/* set display contrast level                  */
+/***********************************************/
+void win_set_contrast(unsigned char level)
+{
+  s_contrast = level;
+  disp.set_contrast(s_contrast);
+}
+
+/***********************************************/
+/* win_get_contrast                            */
+/*                                             */
+/* return display contrast level               */
+/***********************************************/
+unsigned char win_get_contrast(void)
+{
+  return s_contrast;
 }

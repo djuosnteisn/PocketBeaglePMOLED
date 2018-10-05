@@ -19,6 +19,8 @@ using namespace exploringBB;
 #define NUM_ROWS 64
 
 // P25317 macros
+#define MAX_CONTRAST 0xFF
+#define MIN_CONTRAST 0x00
 #define DEF_CONTRAST 0x80
 #define ADDR_MODE_HORZ 0x00
 #define ADDR_MODE_VERT 0X01

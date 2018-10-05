@@ -87,6 +87,7 @@ void P25317::enable_display(int en)
   
   if (en == DISP_ENABLE)
     {
+      usleep(10000);
       // deassert reset line
       rst->setValue(HIGH);
       usleep(10000);

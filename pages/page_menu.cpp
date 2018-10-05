@@ -158,8 +158,6 @@ static void page_menu_draw_text(void)
   unsigned char i, y, temp;
 
   /* configure window parameters */
-  win_set_inverse(INVERSE_OFF);
-  win_set_transparent(TRANS_OFF);
 
   for (i = 0; i < NUM_TEXT_ROWS; i++)
     {
@@ -167,12 +165,14 @@ static void page_menu_draw_text(void)
       // clear the row
       temp = win_get_str_len(s_menu[i + s_offset].str);
       win_set_inverse(INVERSE_ON);
-      win_put_box(TEXT_X + temp, y, MAX_COL, y + TEXT_Y_SPACING);
+      win_set_transparent(TRANS_ON);
+      win_put_box(TEXT_X + temp, y, MAX_COL - 1, y + TEXT_Y_SPACING);
       // invert selected item
       if (i == s_sel - s_offset)
 	win_set_inverse(INVERSE_ON);
       else
 	win_set_inverse(INVERSE_OFF);
+      win_set_transparent(TRANS_OFF);
       win_put_text_xy(s_menu[i + s_offset].str, TEXT_X, y, FRAME_WIDTH_PIX);
     }
 }

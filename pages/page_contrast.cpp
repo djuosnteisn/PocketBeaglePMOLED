@@ -15,6 +15,8 @@
 /*   locals   */
 /**************/
 
+signed short s_con_lvl, s_prev_con_lvl;
+
 /*****************/
 /*   functions   */
 /*****************/
@@ -22,7 +24,8 @@
 void page_contrast_on_active(void);
 void page_contrast_on_refresh(void);
 static void page_contrast_on_event(unsigned char btn);
-static void page_contrast_draw_title(void);
+static void page_contrast_draw_text(void);
+static void page_contrast_draw_bmp(void);
 
 /**************************************************
   page_contrast_proc
@@ -55,11 +58,14 @@ char page_contrast_proc(events ev, unsigned char btn)
 
 void page_contrast_on_active(void)
 {
-  //clear the entire screen
+  // clear the entire screen
   win_clear_screen();
 
-  //update disp
-  page_contrast_draw_title();
+  // update variables
+  s_prev_con_lvl = s_con_lvl = win_get_contrast();
+  // update disp
+  page_contrast_draw_text();
+  page_contrast_draw_bmp();
 }
 
 /**************************************************
@@ -70,6 +76,12 @@ void page_contrast_on_active(void)
 
 void page_contrast_on_refresh(void)
 {
+  if (s_prev_con_lvl != s_con_lvl)
+    {
+      page_contrast_draw_text();
+      // update prev variables
+      s_prev_con_lvl = s_con_lvl;
+    }
 }
 
 /**************************************************
@@ -83,10 +95,16 @@ void page_contrast_on_event(unsigned char btn)
     {
       /* up/down buttons */
     case BTN_UP:
-      //NOTE make vol increase
+      s_con_lvl += 10;
+      if (s_con_lvl > MAX_CONTRAST)
+	s_con_lvl = MAX_CONTRAST;
+      win_set_contrast(s_con_lvl);
       break;
     case BTN_DN:
-      //NOTE make vol decrease
+      s_con_lvl -= 10;
+      if (s_con_lvl < MIN_CONTRAST)
+	s_con_lvl = MIN_CONTRAST;
+      win_set_contrast(s_con_lvl);
       break;
       /* menu & back buttons */
     case BTN_MENU:
@@ -98,17 +116,49 @@ void page_contrast_on_event(unsigned char btn)
 }
 
 /**************************************************
-  page_contrast_draw_title
+  page_contrast_draw_text
 
-  draw title at top of page
+  draw text at top of page
 ***************************************************/
-static const unsigned char TITLE_X = 64;
-static const unsigned char TITLE_Y = 0;
+static const unsigned char TEXT_X = 96;
+static const unsigned char LVL_Y = 16;
+static const unsigned char CON_Y = 32;
+static const unsigned char CLEAR_X1 = TEXT_X - 30;
+static const unsigned char CLEAR_X2 = TEXT_X + 30;
 
-static void page_contrast_draw_title(void)
+static void page_contrast_draw_text(void)
 {
-  const char *str_title = "CONTRAST";
-  unsigned int temp = win_get_str_len(str_title) / 2;
+  const char *str_text = "LVL:";
+  char lvl_buf[4];
+  unsigned int temp;
 
-  win_put_text_xy(str_title, TITLE_X - temp, TITLE_Y, FRAME_WIDTH_PIX);
+  // "LVL:" text
+  temp = win_get_str_len(str_text);
+  win_put_text_xy(str_text, TEXT_X - (temp/2), LVL_Y, temp+10);
+  // contrast value
+  // clear region
+  win_set_inverse(INVERSE_ON);
+  win_put_box(CLEAR_X1, CON_Y, CLEAR_X2, CON_Y + win_get_font_height());
+  win_set_inverse(INVERSE_OFF);
+  if (s_con_lvl == 0)
+    snprintf(lvl_buf, sizeof(lvl_buf), "MIN");
+  else if (s_con_lvl == 0xFF)
+    snprintf(lvl_buf, sizeof(lvl_buf), "MAX");
+  else
+    snprintf(lvl_buf, sizeof(lvl_buf), "%d", s_con_lvl);
+  temp = win_get_str_len(lvl_buf);
+  win_put_text_xy(lvl_buf, TEXT_X - (temp/2), CON_Y, temp+10);
+}
+
+/**************************************************
+  page_contrast_draw_bmp
+
+  draw bitmap image
+***************************************************/
+static const unsigned char BMP_X = 0;
+static const unsigned char BMP_Y = 0;
+
+static void page_contrast_draw_bmp(void)
+{
+  win_put_bmp_xy(BMP_X, BMP_Y, sc_circle);
 }

@@ -26,6 +26,8 @@
 #define WHITE 0xff
 #define TRANS_OFF 0
 #define TRANS_ON 1
+#define MAX_CONTRAST 0xFF
+#define MIN_CONTRAST 0x00
 
 /* create a P25317 obj for OLED interaction */
 void win_init(void);
@@ -72,5 +74,11 @@ unsigned char win_get_invert(void);
 /* set transparency */
 void win_set_transparent(unsigned char on_off);
 unsigned char win_get_transparent(void);
+
+/* set contrast */
+void win_set_contrast(unsigned char level);
+
+/* get contrast */
+unsigned char win_get_contrast(void);
 
 #endif //WIN_H
