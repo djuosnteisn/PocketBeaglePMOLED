@@ -63,7 +63,7 @@ void page_on_event(pages page, events ev, unsigned char btn)
       page_contrast_proc(ev, btn);
       break;
     case PAGE_ABOUT:
-      //page_about_proc(ev, btn);
+      page_about_proc(ev, btn);
       break;
     case PAGE_SHUTDOWN:
       page_shutdown_proc(ev, btn);

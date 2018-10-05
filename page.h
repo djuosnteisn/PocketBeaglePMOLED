@@ -32,7 +32,6 @@ enum pages
     PAGE_EQ_SETUP,
     PAGE_VOL,
     PAGE_CONTRAST,
-    PAGE_TEST,
     PAGE_ABOUT,
     PAGE_SHUTDOWN,
   };
