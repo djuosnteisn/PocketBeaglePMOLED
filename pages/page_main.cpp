@@ -4,6 +4,7 @@
 #include <stdlib.h> // rand
 #include <string.h> // strlen
 #include "page_main.h"
+#include "../main.h"
 #include "../page.h"
 #include "../win.h"
 #include "../btns.h"
@@ -15,10 +16,10 @@
 /**************/
 /*   locals   */
 /**************/
-unsigned char s_l_audio_meter = 0;
-unsigned char s_r_audio_meter = 0;
-unsigned char s_rf_meter = 0;
-unsigned char s_batt_meter = 0;
+static unsigned char s_l_audio_meter = 0;
+static unsigned char s_r_audio_meter = 0;
+static unsigned char s_rf_meter = 0;
+static unsigned char s_batt_meter = 0, s_prev_batt_meter;
 
 /*****************/
 /*   functions   */
@@ -64,10 +65,12 @@ char page_main_proc(events ev, unsigned char btn)
 
 void page_main_on_active(void)
 {
-  //clear the entire screen
+  // clear the entire screen
   win_clear_screen();
 
-  //update disp
+  // force batt meter
+  s_prev_batt_meter = s_batt_meter + 1;
+  // update disp
   page_main_draw_text();
   page_main_draw_rf();
   page_main_draw_audio();
@@ -121,16 +124,20 @@ void page_main_on_event(unsigned char btn)
 ***************************************************/
 static const unsigned char SONG_X = 0;
 static const unsigned char SONG_Y = 24;
-static const unsigned char SONG_MAX_WIDTH = 100;
+static const unsigned char SONG_MAX_WIDTH = 110;
 static const unsigned char SCROLL_DELAY = 5; // 1/4 second
 static const unsigned char EQ_X = 0;
 static const unsigned char EQ_Y = 48;
+static const unsigned char VOL_X = 72;
+static const unsigned char VOL_Y = 48;
 
 static void page_main_draw_text(void)
 {
   static const char *song_name = "Your Favorite Jam!  ";
   static unsigned char song_index = 0, str_width;
   static unsigned int scroll_count = 0;
+  static const char *str_eq[] = {"Flat", "Party", "High", "Low", "Rock", "Surr", "Cust"};
+  char vol_buf[4];
 
   // draw song name, scroll if necessary
   win_set_transparent(TRANS_OFF);
@@ -159,7 +166,13 @@ static void page_main_draw_text(void)
 
 
   // put eq mode
-  win_put_text_xy("EQ:Cust", EQ_X, EQ_Y, MAX_COL);
+  win_put_bmp_xy(EQ_X, EQ_Y, eq_slider);
+  win_put_text_xy(str_eq[eq.mode], EQ_X + eq_slider.width, EQ_Y, MAX_COL - EQ_X + eq_slider.width);
+
+  // put volume
+  win_put_bmp_xy(VOL_X, VOL_Y, vol);
+  snprintf(vol_buf, sizeof(vol_buf), "%d", volume);
+  win_put_text_xy(vol_buf, VOL_X + vol.width, VOL_Y, MAX_COL - VOL_X + vol.width);
 }
 
 /**************************************************
@@ -253,8 +266,6 @@ static const unsigned char BATT_BOT_Y2 = 63;
 
 void page_main_draw_batt(void)
 {
-  static unsigned char s_prev_batt_meter = s_batt_meter + 1;
-
   if (s_batt_meter != s_prev_batt_meter)
     {
       // just the tip

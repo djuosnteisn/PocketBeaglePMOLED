@@ -28,8 +28,8 @@ extern "C" {
   const extern BMP_T BTSignal3;
   const extern BMP_T BTSignal4;
   const extern BMP_T BTSignal5;
-  //NOTE diag
-  const extern BMP_T diag;
+  const extern BMP_T eq_slider;
+  const extern BMP_T vol;
 
 
 #endif /* BMPS_H */

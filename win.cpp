@@ -38,6 +38,22 @@ void win_init(void)
 
 
 /***********************************************/
+/* win_close                                   */
+/*                                             */
+/* close various window parameters             */
+/***********************************************/
+void win_close(void)
+{
+  // clear the screen //NOTE maybe fade out
+  win_set_inverse(INVERSE_OFF);
+  win_clear_screen();
+  usleep(10000);
+  // close the spi
+  disp.close_spi();
+}
+
+
+/***********************************************/
 /* win_put_pixel_xy                            */
 /*                                             */
 /* draw a single pixel at X and Y              */
@@ -518,11 +534,11 @@ void win_put_text_xy(const char *str, unsigned char x, unsigned char y, unsigned
 	  ++f_index;
 	  ++tot_width;
 	  // break if the width is getting too large
-	  if (tot_width + width > max_width)
+	  if (tot_width + 1 > max_width)
 	    break;
 	}
       // break if the width is getting too large
-      if (tot_width + width > max_width)
+      if (tot_width + 1 > max_width)
 	break;
     }
 

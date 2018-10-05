@@ -11,7 +11,7 @@
 /*   macros   */
 /**************/
 // menu constants
-#define NUM_MENU_ITEMS 5
+#define NUM_MENU_ITEMS 6
 #define MENU_SEL_MIN 0
 #define MENU_SEL_MAX (NUM_MENU_ITEMS - 1)
 // cursor constants
@@ -33,7 +33,8 @@ static const struct tag_s_menu
     {"VOLUME", PAGE_MAIN},
     {"CONTRAST", PAGE_CONTRAST},
     {"TEST PAGE", PAGE_MAIN},
-    {"ABOUT", PAGE_ABOUT}
+    {"ABOUT", PAGE_ABOUT},
+    {"SHUTDOWN", PAGE_SHUTDOWN}
   };
 static signed char s_sel, s_prev_sel;
 static signed char s_cursor, s_offset;

@@ -29,10 +29,12 @@ enum pages
     PAGE_MENU,
     // menu pages
     PAGE_EQ,
+    PAGE_EQ_SETUP,
     PAGE_VOL,
     PAGE_CONTRAST,
     PAGE_TEST,
-    PAGE_ABOUT
+    PAGE_ABOUT,
+    PAGE_SHUTDOWN,
   };
 
 

@@ -5,9 +5,17 @@
 #include "win.h"
 #include "page.h"
 
+EQ eq;
+unsigned char volume;
+
 int main(void)
 {
   page_init();
+  eq.mode = DEF_EQ_MODE;
+  eq.bass_lvl = 0;
+  eq.mid_lvl = 0;
+  eq.treb_lvl = 0;
+  volume = DEF_VOL;
 
   while (1)
     {

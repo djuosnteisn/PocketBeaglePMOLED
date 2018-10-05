@@ -32,6 +32,9 @@
 /* create a P25317 obj for OLED interaction */
 void win_init(void);
 
+/* close any necessary peripherals */
+void win_close(void);
+
 /* draw a single pixel at X and Y */
 void win_put_pixel_xy(unsigned char x, unsigned char y);
 

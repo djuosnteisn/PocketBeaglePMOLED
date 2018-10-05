@@ -7,6 +7,8 @@
 #include "pages/page_main.h"
 #include "pages/page_menu.h"
 #include "pages/page_contrast.h"
+#include "pages/page_eq.h"
+#include "pages/page_shutdown.h"
 //NOTE temporary
 #include "bmps.h"
 
@@ -55,13 +57,16 @@ void page_on_event(pages page, events ev, unsigned char btn)
       page_menu_proc(ev, btn);
       break;
     case PAGE_EQ:
-      //page_eq_proc(ev, btn);
+      page_eq_proc(ev, btn);
       break;
     case PAGE_CONTRAST:
       page_contrast_proc(ev, btn);
       break;
     case PAGE_ABOUT:
       //page_about_proc(ev, btn);
+      break;
+    case PAGE_SHUTDOWN:
+      page_shutdown_proc(ev, btn);
       break;
     }
 }
