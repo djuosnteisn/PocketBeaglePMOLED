@@ -7,6 +7,8 @@
 
 EQ eq;
 unsigned char volume;
+unsigned int tick;
+const unsigned int PAGE_COUNT = 10;
 
 int main(void)
 {
@@ -19,7 +21,9 @@ int main(void)
 
   while (1)
     {
-      page_task();
-      usleep(50000);
+      if (!(tick % PAGE_COUNT))
+	page_task();
+      usleep(5000);
+      tick++;
     }
 }

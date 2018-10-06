@@ -13,12 +13,17 @@
 #define DEF_EQ_MODE EQ_MODE_FLAT
 #define MAX_EQ_MODE EQ_MODE_CUST
 #define MIN_EQ_MODE EQ_MODE_FLAT
+// custom EQ stuff
+#define MAX_LVL 10
+#define MIN_LVL (-10)
 // Volume
 #define VOL_MAX 100
 #define VOL_MIN 0
 #define DEF_VOL 50
 
-/* globals */
+
+/* types */
+
 typedef struct tag_EQ
 {
   unsigned char mode;
@@ -27,6 +32,9 @@ typedef struct tag_EQ
   signed char treb_lvl;
 } EQ;
 
+/* globals */
+
+extern unsigned int tick;
 extern EQ eq;
 extern unsigned char volume;
 

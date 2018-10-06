@@ -8,6 +8,8 @@
 #include "pages/page_menu.h"
 #include "pages/page_contrast.h"
 #include "pages/page_eq.h"
+#include "pages/page_eq_setup.h"
+#include "pages/page_about.h"
 #include "pages/page_shutdown.h"
 //NOTE temporary
 #include "bmps.h"
@@ -27,9 +29,8 @@ void page_init(void)
 */
 void page_task(void)
 {
-#define DEBOUNCE 5 // ~250ms
-
   BTN_EV ev = btns.get_event();
+
   if (ev.btn)
     {
       page_on_event(s_cur_page, EV_BTN,  ev.btn);
@@ -58,6 +59,9 @@ void page_on_event(pages page, events ev, unsigned char btn)
       break;
     case PAGE_EQ:
       page_eq_proc(ev, btn);
+      break;
+    case PAGE_EQ_SETUP:
+      page_eq_setup_proc(ev, btn);
       break;
     case PAGE_CONTRAST:
       page_contrast_proc(ev, btn);

@@ -3,7 +3,6 @@
 */
 
 #include "page_about.h"
-#include "../main.h"
 #include "../page.h"
 #include "../win.h"
 #include "../btns.h"
@@ -16,7 +15,6 @@
 /*   locals   */
 /**************/
 
-static unsigned char s_prev_val;
 
 /*****************/
 /*   functions   */
@@ -25,7 +23,6 @@ static unsigned char s_prev_val;
 void page_about_on_active(void);
 void page_about_on_refresh(void);
 static void page_about_on_event(unsigned char btn);
-static void page_about_draw_title(void);
 static void page_about_draw_text(void);
 
 /**************************************************
@@ -62,11 +59,7 @@ void page_about_on_active(void)
   // clear the entire screen
   win_clear_screen();
 
-  // update variables
-  s_prev_val = about.mode;
-
   // update disp
-  page_about_draw_title();
   page_about_draw_text();
 }
 
@@ -78,12 +71,7 @@ void page_about_on_active(void)
 
 void page_about_on_refresh(void)
 {
-  if (s_prev_val != about.mode)
-    {
-      page_about_draw_text();
-      //update prev variables
-      s_prev_val = about.mode;
-    }
+  page_about_draw_text();
 }
 
 /**************************************************
@@ -104,36 +92,10 @@ void page_about_on_event(unsigned char btn)
       break;
       /* up/down buttons */
     case BTN_UP:
-      if (++about.mode > MAX_ABOUT_MODE)
-	about.mode = MIN_ABOUT_MODE;
       break;
     case BTN_DN:
-      if (--about.mode > MAX_ABOUT_MODE) //unsigned rollover
-	about.mode = MAX_ABOUT_MODE;
       break;
     }
-}
-
-/**************************************************
-  page_about_draw_title
-
-  draw title text
-***************************************************/
-static unsigned char TITLE_X = 64;
-static unsigned char TITLE_Y = 8;
-
-static void page_about_draw_title(void)
-{
-  const char *str_title = "ABOUT Mode:";
-  unsigned char temp;
-
-  /* configure window parameters */
-  win_set_transparent(TRANS_OFF);
-  win_set_inverse(INVERSE_OFF);
-
-  // draw title string
-  temp = win_get_str_len(str_title);
-  win_put_text_xy(str_title, TITLE_X - temp/2, TITLE_Y, temp);
 }
 
 /**************************************************
@@ -141,27 +103,23 @@ static void page_about_draw_title(void)
 
   draw about item text
 ***************************************************/
-static const unsigned char VAL_X = 64;
-static const unsigned char VAL_Y  = 40;
+static unsigned char ROW_1_Y = 8;
+static unsigned char ROW_2_Y = 24;
+static unsigned char ROW_3_Y = 40;
 
 static void page_about_draw_text(void)
 {
-  //NOTE string array must match definition in main.h
-  const char *str_val[] =
-    {"Flat Mode", "Party Mode", "High Mode", "Low Mode", "Rock Mode", "Surround", "Custom"};
-  unsigned char temp;
+  static unsigned int text_counter = 0;
+  const char *str_created_by = "Created By:";
+  const char *str_dustin = "Dustin Jones";
+  const char *str_phone = "(505)480-8217";
 
-  /* configure window parameters */
   win_set_transparent(TRANS_OFF);
   win_set_inverse(INVERSE_OFF);
 
-  // clear previous text
-  win_set_inverse(INVERSE_ON);
-  temp = win_get_str_len(str_val[s_prev_val]);
-  win_put_box(VAL_X - temp/2 - 1, VAL_Y, VAL_X + temp/2 +1, VAL_Y + 15);
-
-  // draw value text inverted
-  win_set_inverse(INVERSE_ON);
-  temp = win_get_str_len(str_val[about.mode]);
-  win_put_text_xy(str_val[about.mode], VAL_X - temp/2, VAL_Y, temp);
+  win_put_text_xy(str_created_by, 0, ROW_1_Y, MAX_COL);
+  win_put_text_xy(str_dustin, 0, ROW_2_Y, MAX_COL);
+  win_put_text_xy(str_phone, 0, ROW_3_Y, MAX_COL);
+  
+  ++text_counter;
 }

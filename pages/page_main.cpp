@@ -20,6 +20,7 @@ static unsigned char s_l_audio_meter = 0;
 static unsigned char s_r_audio_meter = 0;
 static unsigned char s_rf_meter = 0;
 static unsigned char s_batt_meter = 0, s_prev_batt_meter;
+static unsigned char s_prev_volume;
 
 /*****************/
 /*   functions   */
@@ -75,6 +76,7 @@ void page_main_on_active(void)
   page_main_draw_rf();
   page_main_draw_audio();
   page_main_draw_batt();
+  s_prev_volume = volume + 1; // force refresh
 }
 
 /**************************************************
@@ -103,10 +105,14 @@ void page_main_on_event(unsigned char btn)
     {
       /* up/down buttons */
     case BTN_UP:
-      //NOTE make vol increase
+      volume += 5;
+      if (volume > VOL_MAX)
+	volume = VOL_MAX;
       break;
     case BTN_DN:
-      //NOTE make vol decrease
+      volume -= 5;
+      if (volume > VOL_MAX) //unsigned rollover
+	volume = VOL_MIN;
       break;
       /* menu & back buttons */
     case BTN_MENU:
@@ -128,7 +134,7 @@ static const unsigned char SONG_MAX_WIDTH = 110;
 static const unsigned char SCROLL_DELAY = 5; // 1/4 second
 static const unsigned char EQ_X = 0;
 static const unsigned char EQ_Y = 48;
-static const unsigned char VOL_X = 72;
+static const unsigned char VOL_X = 69;
 static const unsigned char VOL_Y = 48;
 
 static void page_main_draw_text(void)
@@ -138,6 +144,7 @@ static void page_main_draw_text(void)
   static unsigned int scroll_count = 0;
   static const char *str_eq[] = {"Flat", "Party", "High", "Low", "Rock", "Surr", "Cust"};
   char vol_buf[4];
+  unsigned int temp;
 
   // draw song name, scroll if necessary
   win_set_transparent(TRANS_OFF);
@@ -170,9 +177,19 @@ static void page_main_draw_text(void)
   win_put_text_xy(str_eq[eq.mode], EQ_X + eq_slider.width, EQ_Y, MAX_COL - EQ_X + eq_slider.width);
 
   // put volume
-  win_put_bmp_xy(VOL_X, VOL_Y, vol);
-  snprintf(vol_buf, sizeof(vol_buf), "%d", volume);
-  win_put_text_xy(vol_buf, VOL_X + vol.width, VOL_Y, MAX_COL - VOL_X + vol.width);
+  if (s_prev_volume != volume)
+    {
+      win_put_bmp_xy(VOL_X, VOL_Y, vol);
+      // clear old volume
+      snprintf(vol_buf, sizeof(vol_buf), "%d", s_prev_volume);
+      temp = win_get_str_len(vol_buf);
+      win_set_inverse(INVERSE_ON);
+      win_put_box(VOL_X + vol.width, VOL_Y, VOL_X + vol.width + temp, VOL_Y + vol.height - 1);
+      win_set_inverse(INVERSE_OFF);
+      snprintf(vol_buf, sizeof(vol_buf), "%d", volume);
+      win_put_text_xy(vol_buf, VOL_X + vol.width, VOL_Y, MAX_COL - VOL_X + vol.width);
+      s_prev_volume = volume;
+    }
 }
 
 /**************************************************

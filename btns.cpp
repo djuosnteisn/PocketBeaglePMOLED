@@ -1,34 +1,59 @@
 #include <iostream>
 #include <stdio.h>
 #include "btns.h"
+#include "main.h"
 
 using namespace std;
 using namespace exploringBB;
 
 static BTN_EV s_event;
-static
+static const unsigned int DEBOUNCE = 25; // refrenced to 5ms, 1/8 second
 
 int btn_callback_menu(int var)
 {
-  s_event.btn |= BTN_MENU;
+  static unsigned int debounce = 0;
+
+  if ((tick - debounce) > DEBOUNCE)
+    {
+      s_event.btn |= BTN_MENU;
+      debounce = tick;
+    }
   return 0;
 }
 
 int btn_callback_back(int var)
 {
-  s_event.btn |= BTN_BACK;
+  static unsigned int debounce = 0;
+
+  if ((tick - debounce) > DEBOUNCE)
+    {
+      s_event.btn |= BTN_BACK;
+      debounce = tick;
+    }
   return 0;
 }
 
 int btn_callback_up(int var)
 {
-  s_event.btn |= BTN_UP;
+  static unsigned int debounce = 0;
+
+  if ((tick - debounce) > DEBOUNCE)
+    {
+      s_event.btn |= BTN_UP;
+      debounce = tick;
+    }
   return 0;
 }
 
 int btn_callback_dn(int var)
 {
-  s_event.btn |= BTN_DN;
+  static unsigned int debounce = 0;
+
+  if ((tick - debounce) > DEBOUNCE)
+    {
+      s_event.btn |= BTN_DN;
+      debounce = tick;
+    }
   return 0;
 }
 

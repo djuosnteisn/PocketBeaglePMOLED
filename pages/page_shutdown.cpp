@@ -145,7 +145,7 @@ static const unsigned char YES_NO_Y = 40;
 static void page_shutdown_draw_text(void)
 {
   const char *str_desc = "Shutdown?";
-  const char *str_yes = "YES", *str_no = "NO";
+  const char *str_yes = "Yes", *str_no = "No";
   unsigned char temp;
 
   /* configure window parameters */

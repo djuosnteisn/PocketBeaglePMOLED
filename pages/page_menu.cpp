@@ -11,7 +11,7 @@
 /*   macros   */
 /**************/
 // menu constants
-#define NUM_MENU_ITEMS 6
+#define NUM_MENU_ITEMS 5
 #define MENU_SEL_MIN 0
 #define MENU_SEL_MAX (NUM_MENU_ITEMS - 1)
 // cursor constants
@@ -29,10 +29,9 @@ static const struct tag_s_menu
   pages page;
 } s_menu[NUM_MENU_ITEMS] =
   {
-    {"EQ SETUP", PAGE_EQ},
-    {"VOLUME", PAGE_MAIN},
+    {"EQ MODE", PAGE_EQ},
+    {"EQ SETUP", PAGE_EQ_SETUP},
     {"CONTRAST", PAGE_CONTRAST},
-    {"TEST PAGE", PAGE_MAIN},
     {"ABOUT", PAGE_ABOUT},
     {"SHUTDOWN", PAGE_SHUTDOWN}
   };
