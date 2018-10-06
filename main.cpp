@@ -7,6 +7,7 @@
 
 EQ eq;
 unsigned char volume;
+unsigned char anc_lvl;
 unsigned int tick;
 const unsigned int PAGE_COUNT = 10;
 
@@ -18,6 +19,7 @@ int main(void)
   eq.mid_lvl = 0;
   eq.treb_lvl = 0;
   volume = DEF_VOL;
+  anc_lvl = DEF_ANC_LVL;
 
   while (1)
     {

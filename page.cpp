@@ -9,6 +9,7 @@
 #include "pages/page_contrast.h"
 #include "pages/page_eq.h"
 #include "pages/page_eq_setup.h"
+#include "pages/page_anc_setup.h"
 #include "pages/page_about.h"
 #include "pages/page_shutdown.h"
 //NOTE temporary
@@ -62,6 +63,9 @@ void page_on_event(pages page, events ev, unsigned char btn)
       break;
     case PAGE_EQ_SETUP:
       page_eq_setup_proc(ev, btn);
+      break;
+    case PAGE_ANC_SETUP:
+      page_anc_setup_proc(ev, btn);
       break;
     case PAGE_CONTRAST:
       page_contrast_proc(ev, btn);

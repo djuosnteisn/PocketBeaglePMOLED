@@ -16,6 +16,10 @@
 // custom EQ stuff
 #define MAX_LVL 10
 #define MIN_LVL (-10)
+// Active Noise Control stuff
+#define MAX_ANC_LVL 3
+#define MIN_ANC_LVL 0
+#define DEF_ANC_LVL MAX_ANC_LVL
 // Volume
 #define VOL_MAX 100
 #define VOL_MIN 0
@@ -37,5 +41,6 @@ typedef struct tag_EQ
 extern unsigned int tick;
 extern EQ eq;
 extern unsigned char volume;
+extern unsigned char anc_lvl;
 
 #endif //MAIN_H

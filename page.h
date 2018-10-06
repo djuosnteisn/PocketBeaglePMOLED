@@ -30,7 +30,7 @@ enum pages
     // menu pages
     PAGE_EQ,
     PAGE_EQ_SETUP,
-    PAGE_VOL,
+    PAGE_ANC_SETUP,
     PAGE_CONTRAST,
     PAGE_ABOUT,
     PAGE_SHUTDOWN,
