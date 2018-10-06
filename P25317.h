@@ -21,7 +21,7 @@ using namespace exploringBB;
 // P25317 macros
 #define MAX_CONTRAST 0xFF
 #define MIN_CONTRAST 0x00
-#define DEF_CONTRAST 0x80
+#define DEF_CONTRAST 0x60
 #define ADDR_MODE_HORZ 0x00
 #define ADDR_MODE_VERT 0X01
 #define ADDR_MODE_PAGE 0x10
@@ -41,7 +41,6 @@ using namespace exploringBB;
 #define DEF_INVERT INV_OFF
 #define SLEEP_ON 0xAE
 #define SLEEP_OFF 0xAF
-#define DEF_SLEEP SLEEP_OFF
 
 class P25317
 {
@@ -58,7 +57,6 @@ class P25317
   void init_spi(void);
   void close_spi(void);
   void enable_display(int en);
-  void sleep_display(unsigned char state);
   void send_ctl_cmd(unsigned char *buf, int buf_len);
   void send_dat_cmd(unsigned char *buf, int buf_len);
   void set_contrast(unsigned char lvl);

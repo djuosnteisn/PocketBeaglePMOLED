@@ -26,7 +26,7 @@ extern "C" {
   static int fd;
   /*
   //NOTE tr must be kept static and initialized once to avoid corruption as an autovariable.
-  Ideally, ever structure member will be properly initialized, but I haven't found the 
+  Ideally, every structure member will be properly initialized, but I haven't found the 
   struct type def yet. If it's not static, the next time the autovariable is created,
   uninitialized members values will be random, and potentially invalid.
   */
@@ -55,6 +55,7 @@ extern "C" {
     tr.delay_usecs = delay;
     tr.speed_hz = speed;
     tr.bits_per_word = bits;
+    tr.cs_change = 0;
 
     /* bits per word */
     update_bits();
@@ -80,7 +81,7 @@ extern "C" {
     tr.len = len;
 
     ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-    //    printf("sent %d bytes", ret);
+    //printf("sent %d bytes\n", ret);
     if (ret < 1)
     	pabort("can't send spi message");
   }

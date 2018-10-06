@@ -47,7 +47,6 @@ void P25317::init_display(void)
   stop_col = DEF_STOP_COL;
   col_off = DEF_COL_OFF;
   invert = DEF_INVERT;
-  sleep = DEF_SLEEP;
   // keep the reset asserted
   enable_display(0);
 }
@@ -82,40 +81,23 @@ void P25317::enable_display(int en)
       0x20, addr_mode,      // Horizontal Addressing Mode
       0xD5, 0x80,           // Set OSC Freq
       0x8D, 0x14,           // Charge Pump Enable
-      sleep,                // Display On/Off
     };
-  
+ 
   if (en == DISP_ENABLE)
     {
-      usleep(10000);
       // deassert reset line
       rst->setValue(HIGH);
-      usleep(10000);
-      // send various configuration commands
+      usleep(100000);
       send_ctl_cmd(config, sizeof(config));
+      usleep(100000);
+      unsigned char cmd[] = {SLEEP_OFF};
+      send_ctl_cmd(cmd, 1);
+      usleep(100000);
     }
   else
     {
       // assert reset line
       rst->setValue(LOW);
-    }
-}
-
-void P25317::sleep_display(unsigned char state)
-{
-  unsigned char buf[] = {state? (unsigned char)SLEEP_ON : (unsigned char)SLEEP_OFF};
-  
-  if (state)
-    {
-      // sleep display
-      this->sleep = SLEEP_ON;
-      send_ctl_cmd(buf, sizeof(buf));
-    }
-  else
-    {
-      // wake display
-      this->sleep = SLEEP_OFF;
-      enable_display(DISP_ENABLE); //send all cmds
     }
 }
 
