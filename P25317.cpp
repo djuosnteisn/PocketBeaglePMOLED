@@ -88,6 +88,10 @@ void P25317::enable_display(int en)
       // deassert reset line
       rst->setValue(HIGH);
       usleep(100000);
+      rst->setValue(LOW);
+      usleep(1000);
+      rst->setValue(HIGH);
+      usleep(100000);
       send_ctl_cmd(config, sizeof(config));
       usleep(100000);
       unsigned char cmd[] = {SLEEP_OFF};

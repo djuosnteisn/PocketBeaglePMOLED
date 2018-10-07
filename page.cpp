@@ -21,6 +21,9 @@ static pages s_cur_page = PAGE_MAIN;
 void page_init(void)
 {
   win_init();
+  //NOTE call twice voodoo
+  // need a better scope to scrutinize init routines
+  win_init();
   page_show_page(PAGE_MAIN);
 }
 
