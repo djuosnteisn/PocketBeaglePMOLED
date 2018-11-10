@@ -21,9 +21,9 @@ static unsigned char s_l_audio_meter_1 = 40;
 static unsigned char s_r_audio_meter_1 = 40;
 static unsigned char s_l_audio_meter_2 = 40;
 static unsigned char s_r_audio_meter_2 = 40;
-static unsigned char s_rf_meter = 3;
-static unsigned char s_batt_meter = 0, s_prev_batt_meter;
-static unsigned char s_prev_volume;
+static unsigned char s_rf_meter_1 = 3, s_rf_meter_2 = 2;
+static unsigned char s_batt_meter_1 = 4, s_prev_batt_meter_1;
+static unsigned char s_batt_meter_2 = 2, s_prev_batt_meter_2;
 
 /*****************/
 /*   functions   */
@@ -73,13 +73,13 @@ void page_main_on_active(void)
   win_clear_screen();
 
   // force batt meter
-  s_prev_batt_meter = s_batt_meter + 1;
+  s_prev_batt_meter_1 = s_batt_meter_1 + 1;
+  s_prev_batt_meter_2 = s_batt_meter_2 + 1;
   // update disp
   page_main_draw_text();
   page_main_draw_rf();
   page_main_draw_audio();
   page_main_draw_batt();
-  s_prev_volume = volume + 1; // force refresh
 }
 
 /**************************************************
@@ -185,23 +185,6 @@ static void page_main_draw_text(void)
   win_put_bmp_xy(EQ_X, EQ_Y, eq_slider);
   win_put_text_xy(str_eq[eq.mode], EQ_X + eq_slider.width, EQ_Y, MAX_COL - EQ_X + eq_slider.width);
   */
-
-  /*
-  // put volume
-  if (s_prev_volume != volume)
-    {
-      win_put_bmp_xy(VOL_X, VOL_Y, vol);
-      // clear old volume
-      snprintf(vol_buf, sizeof(vol_buf), "%d", s_prev_volume);
-      temp = win_get_str_len(vol_buf);
-      win_set_inverse(INVERSE_ON);
-      win_put_box(VOL_X + vol.width, VOL_Y, VOL_X + vol.width + temp, VOL_Y + vol.height - 1);
-      win_set_inverse(INVERSE_OFF);
-      snprintf(vol_buf, sizeof(vol_buf), "%d", volume);
-      win_put_text_xy(vol_buf, VOL_X + vol.width, VOL_Y, MAX_COL - VOL_X + vol.width);
-      s_prev_volume = volume;
-    }
-  */
 }
 
 /**************************************************
@@ -209,34 +192,55 @@ static void page_main_draw_text(void)
 
   draw various RF meters: RSSI, Ant Diversity, etc
 ***************************************************/
-// BT RF meter
 static const unsigned char BT_X = 97;
-static const unsigned char BT_Y = 9;
+static const unsigned char BT_Y_1 = 9;
+static const unsigned char BT_Y_2 = 41;
 
 static void page_main_draw_rf(void)
 {
   win_set_inverse(INVERSE_OFF);
   win_set_transparent(TRANS_OFF);
 
-  switch (s_rf_meter)
+  switch (s_rf_meter_1)
     {
     case 0:
-      win_put_bmp_xy(BT_X, BT_Y, BTSignal0);
+      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal0);
       break;
     case 1:
-      win_put_bmp_xy(BT_X, BT_Y, BTSignal1);
+      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal1);
       break;
     case 2:
-      win_put_bmp_xy(BT_X, BT_Y, BTSignal2);
+      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal2);
       break;
     case 3:
-      win_put_bmp_xy(BT_X, BT_Y, BTSignal3);
+      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal3);
       break;
     case 4:
-      win_put_bmp_xy(BT_X, BT_Y, BTSignal4);
+      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal4);
       break;
     case 5:
-      win_put_bmp_xy(BT_X, BT_Y, BTSignal5);
+      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal5);
+      break;
+    }
+  switch (s_rf_meter_2)
+    {
+    case 0:
+      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal0);
+      break;
+    case 1:
+      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal1);
+      break;
+    case 2:
+      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal2);
+      break;
+    case 3:
+      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal3);
+      break;
+    case 4:
+      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal4);
+      break;
+    case 5:
+      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal5);
       break;
     }
   win_set_transparent(TRANS_ON);
@@ -292,77 +296,124 @@ void page_main_draw_audio(void)
   draw battery meter
 ***************************************************/
 // battery meters
-static const unsigned char BATT_TIP_X1 = 85;
-static const unsigned char BATT_TIP_X2 = 89;
+static const unsigned char BATT_TIP_X1 = 86;
+static const unsigned char BATT_TIP_X2 = 90;
 static const unsigned char BATT_X1 = 83;
 static const unsigned char BATT_X2 = 93;
-static const unsigned char BATT_TIP_Y1 = 0;
-static const unsigned char BATT_TIP_Y2 = 2;
-static const unsigned char BATT_TOP_Y1 = 4;
-static const unsigned char BATT_TOP_Y2 = 9;
-static const unsigned char BATT_MID_Y1 = 11;
-static const unsigned char BATT_MID_Y2 = 16;
-static const unsigned char BATT_BOT_Y1 = 18;
-static const unsigned char BATT_BOT_Y2 = 23;
-/*
-static const unsigned char BATT_TIP_Y1 = 40;
-static const unsigned char BATT_TIP_Y2 = 42;
-static const unsigned char BATT_TOP_Y1 = 44;
-static const unsigned char BATT_TOP_Y2 = 49;
-static const unsigned char BATT_MID_Y1 = 51;
-static const unsigned char BATT_MID_Y2 = 56;
-static const unsigned char BATT_BOT_Y1 = 58;
-static const unsigned char BATT_BOT_Y2 = 63;
-*/
+static const unsigned char BATT_1_TIP_Y1 = 0;
+static const unsigned char BATT_1_TIP_Y2 = 2;
+static const unsigned char BATT_1_TOP_Y1 = 4;
+static const unsigned char BATT_1_TOP_Y2 = 9;
+static const unsigned char BATT_1_MID_Y1 = 11;
+static const unsigned char BATT_1_MID_Y2 = 16;
+static const unsigned char BATT_1_BOT_Y1 = 18;
+static const unsigned char BATT_1_BOT_Y2 = 23;
+static const unsigned char BATT_2_TIP_Y1 = 32;
+static const unsigned char BATT_2_TIP_Y2 = 34;
+static const unsigned char BATT_2_TOP_Y1 = 36;
+static const unsigned char BATT_2_TOP_Y2 = 41;
+static const unsigned char BATT_2_MID_Y1 = 43;
+static const unsigned char BATT_2_MID_Y2 = 48;
+static const unsigned char BATT_2_BOT_Y1 = 50;
+static const unsigned char BATT_2_BOT_Y2 = 55;
 
 void page_main_draw_batt(void)
 {
-  if (s_batt_meter != s_prev_batt_meter)
+  // battery 1
+  if (s_batt_meter_1 != s_prev_batt_meter_1)
     {
       // just the tip
-      win_put_box_empty(BATT_TIP_X1, BATT_TIP_Y1, BATT_TIP_X2, BATT_TIP_Y2);
+      win_put_box_empty(BATT_TIP_X1, BATT_1_TIP_Y1, BATT_TIP_X2, BATT_1_TIP_Y2);
 
       // rest of meter
-      if (s_batt_meter > 0)
+      if (s_batt_meter_1 > 0)
 	{
-	  win_put_box(BATT_X1, BATT_BOT_Y1, BATT_X2, BATT_BOT_Y2);
+	  win_put_box(BATT_X1, BATT_1_BOT_Y1, BATT_X2, BATT_1_BOT_Y2);
 	}
       else
 	{
 	  // clear old meters
 	  win_set_inverse(INVERSE_ON);
-	  win_put_box(BATT_X1, BATT_BOT_Y1, BATT_X2, BATT_BOT_Y2);
+	  win_put_box(BATT_X1, BATT_1_BOT_Y1, BATT_X2, BATT_1_BOT_Y2);
 	  win_set_inverse(INVERSE_OFF);
-	  win_put_box_empty(BATT_X1, BATT_BOT_Y1, BATT_X2, BATT_BOT_Y2);
+	  win_put_box_empty(BATT_X1, BATT_1_BOT_Y1, BATT_X2, BATT_1_BOT_Y2);
 	}
 
-      if (s_batt_meter > 1)
+      if (s_batt_meter_1 > 1)
 	{
-	  win_put_box(BATT_X1, BATT_MID_Y1, BATT_X2, BATT_MID_Y2);
+	  win_put_box(BATT_X1, BATT_1_MID_Y1, BATT_X2, BATT_1_MID_Y2);
 	}
       else
 	{
 	  // clear old meters
 	  win_set_inverse(INVERSE_ON);
-	  win_put_box(BATT_X1, BATT_MID_Y1, BATT_X2, BATT_MID_Y2);
+	  win_put_box(BATT_X1, BATT_1_MID_Y1, BATT_X2, BATT_1_MID_Y2);
 	  win_set_inverse(INVERSE_OFF);
-	  win_put_box_empty(BATT_X1, BATT_MID_Y1, BATT_X2, BATT_MID_Y2);
+	  win_put_box_empty(BATT_X1, BATT_1_MID_Y1, BATT_X2, BATT_1_MID_Y2);
 	}
 
-      if (s_batt_meter > 2)
+      if (s_batt_meter_1 > 2)
 	{
-	  win_put_box (BATT_X1, BATT_TOP_Y1, BATT_X2, BATT_TOP_Y2);
+	  win_put_box (BATT_X1, BATT_1_TOP_Y1, BATT_X2, BATT_1_TOP_Y2);
 	}
       else
 	{
 	  // clear old meters
 	  win_set_inverse(INVERSE_ON);
-	  win_put_box(BATT_X1, BATT_TOP_Y1, BATT_X2, BATT_TOP_Y2);
+	  win_put_box(BATT_X1, BATT_1_TOP_Y1, BATT_X2, BATT_1_TOP_Y2);
 	  win_set_inverse(INVERSE_OFF);
-	  win_put_box_empty(BATT_X1, BATT_TOP_Y1, BATT_X2, BATT_TOP_Y2);
+	  win_put_box_empty(BATT_X1, BATT_1_TOP_Y1, BATT_X2, BATT_1_TOP_Y2);
 	}
 
-      s_prev_batt_meter = s_batt_meter;
+      s_prev_batt_meter_1 = s_batt_meter_1;
+    }
+  // battery 2
+  if (s_batt_meter_2 != s_prev_batt_meter_2)
+    {
+      // just the tip
+      win_put_box_empty(BATT_TIP_X1, BATT_2_TIP_Y1, BATT_TIP_X2, BATT_2_TIP_Y2);
+
+      // rest of meter
+      if (s_batt_meter_2 > 0)
+	{
+	  win_put_box(BATT_X1, BATT_2_BOT_Y1, BATT_X2, BATT_2_BOT_Y2);
+	}
+      else
+	{
+	  // clear old meters
+	  win_set_inverse(INVERSE_ON);
+	  win_put_box(BATT_X1, BATT_2_BOT_Y1, BATT_X2, BATT_2_BOT_Y2);
+	  win_set_inverse(INVERSE_OFF);
+	  win_put_box_empty(BATT_X1, BATT_2_BOT_Y1, BATT_X2, BATT_2_BOT_Y2);
+	}
+
+      if (s_batt_meter_2 > 1)
+	{
+	  win_put_box(BATT_X1, BATT_2_MID_Y1, BATT_X2, BATT_2_MID_Y2);
+	}
+      else
+	{
+	  // clear old meters
+	  win_set_inverse(INVERSE_ON);
+	  win_put_box(BATT_X1, BATT_2_MID_Y1, BATT_X2, BATT_2_MID_Y2);
+	  win_set_inverse(INVERSE_OFF);
+	  win_put_box_empty(BATT_X1, BATT_2_MID_Y1, BATT_X2, BATT_2_MID_Y2);
+	}
+
+      if (s_batt_meter_2 > 2)
+	{
+	  win_put_box (BATT_X1, BATT_2_TOP_Y1, BATT_X2, BATT_2_TOP_Y2);
+	}
+      else
+	{
+	  // clear old meters
+	  win_set_inverse(INVERSE_ON);
+	  win_put_box(BATT_X1, BATT_2_TOP_Y1, BATT_X2, BATT_2_TOP_Y2);
+	  win_set_inverse(INVERSE_OFF);
+	  win_put_box_empty(BATT_X1, BATT_2_TOP_Y1, BATT_X2, BATT_2_TOP_Y2);
+	}
+
+      s_prev_batt_meter_2 = s_batt_meter_2;
     }
 }
 
@@ -374,7 +425,7 @@ void page_main_draw_batt(void)
 static const unsigned char RF_METER_MAX = 5; // 0 - 5
 static const unsigned char BATT_METER_MAX = 3; // 0 - 3
 static const unsigned char AUDIO_METER_DELTA = 40;
-static const unsigned char RF_METER_DELTA = 4;
+static const unsigned char RF_METER_DELTA = 5;
 
 void page_main_fake_meters(void)
 {
@@ -421,24 +472,32 @@ void page_main_fake_meters(void)
   srand(++s_count);
   
   // rf meter, update less often
-  if (!(s_throttle % 20))
+  if (!(s_throttle % 2))
     {
-      offset = (rand() % RF_METER_DELTA) - (RF_METER_DELTA / 2);
-      offset = s_rf_meter + offset;
-      if (offset < 0)
-	offset = 0;
-      else if (offset > RF_METER_MAX)
-	offset = RF_METER_MAX;
-      s_rf_meter = offset;
+      offset = (rand() % 3) - 1;
+      if ((offset < 0 && s_rf_meter_1 > 0) || offset > 0)
+	s_rf_meter_1 += offset;
+      if (s_rf_meter_1 > RF_METER_MAX)
+	s_rf_meter_1 = RF_METER_MAX;
+      srand(++s_count);
+      offset = (rand() % 3) - 1;
+      if ((offset < 0 && s_rf_meter_2 > 0) || offset > 0)
+	s_rf_meter_2 += offset;
+      if (s_rf_meter_2 > RF_METER_MAX)
+	s_rf_meter_2 = RF_METER_MAX;
       srand(++s_count);
     }
+
   // battery meter, update very rarely.. decrease to zero, then repeat
   // 50ms page task, 10 min period for battery cycle,
   if (!(s_throttle % 1200))
     {
-      s_batt_meter -= 1;
-      if (s_batt_meter > BATT_METER_MAX) //unsigned rollover
-	s_batt_meter = BATT_METER_MAX;
+      s_batt_meter_1 -= 1;
+      s_batt_meter_2 -= 1;
+      if (s_batt_meter_1 > BATT_METER_MAX) //unsigned rollover
+	s_batt_meter_1 = BATT_METER_MAX;
+      if (s_batt_meter_2 > BATT_METER_MAX) //unsigned rollover
+	s_batt_meter_2 = BATT_METER_MAX;
     }
   ++s_throttle;
 }
