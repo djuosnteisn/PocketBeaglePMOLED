@@ -67,6 +67,12 @@ BTNS::BTNS(int menu_pin, int back_pin, int up_pin, int dn_pin)
   system("config-pin P1_04 gpio_pu");
   system("config-pin P2_10 gpio_pu");
   system("config-pin P2_03 gpio_pu");
+
+  /*
+  //NOTE test I2C pins as inputs
+  system("config-pin P2_09 gpio_input");
+  system("config-pin P2_11 gpio_input");
+  */
   
   /* assign GPIO objects to each pin */
   menu = new GPIO(menu_pin);
