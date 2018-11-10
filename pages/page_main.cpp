@@ -12,13 +12,16 @@
 /**************/
 /*   macros   */
 /**************/
+#define AUD_METER_MAX 65
 
 /**************/
 /*   locals   */
 /**************/
-static unsigned char s_l_audio_meter = 0;
-static unsigned char s_r_audio_meter = 0;
-static unsigned char s_rf_meter = 0;
+static unsigned char s_l_audio_meter_1 = 40;
+static unsigned char s_r_audio_meter_1 = 40;
+static unsigned char s_l_audio_meter_2 = 40;
+static unsigned char s_r_audio_meter_2 = 40;
+static unsigned char s_rf_meter = 3;
 static unsigned char s_batt_meter = 0, s_prev_batt_meter;
 static unsigned char s_prev_volume;
 
@@ -128,6 +131,7 @@ void page_main_on_event(unsigned char btn)
 
   draw text objects
 ***************************************************/
+/*
 static const unsigned char SONG_X = 0;
 static const unsigned char SONG_Y = 24;
 static const unsigned char SONG_MAX_WIDTH = 110;
@@ -136,16 +140,20 @@ static const unsigned char EQ_X = 0;
 static const unsigned char EQ_Y = 48;
 static const unsigned char VOL_X = 69;
 static const unsigned char VOL_Y = 48;
+*/
 
 static void page_main_draw_text(void)
 {
+  /*
   static const char *song_name = "Your Favorite Jam!  ";
   static unsigned char song_index = 0, str_width;
   static unsigned int scroll_count = 0;
   static const char *str_eq[] = {"Flat", "Party", "High", "Low", "Rock", "Surr", "Cust"};
   char vol_buf[4];
   unsigned int temp;
+  */
 
+  /*
   // draw song name, scroll if necessary
   win_set_transparent(TRANS_OFF);
   if (win_get_str_len(song_name) > SONG_MAX_WIDTH)
@@ -170,12 +178,15 @@ static void page_main_draw_text(void)
     {
       win_put_text_xy(song_name, SONG_X, SONG_Y, SONG_MAX_WIDTH);
     }
+  */
 
-
+  /*
   // put eq mode
   win_put_bmp_xy(EQ_X, EQ_Y, eq_slider);
   win_put_text_xy(str_eq[eq.mode], EQ_X + eq_slider.width, EQ_Y, MAX_COL - EQ_X + eq_slider.width);
+  */
 
+  /*
   // put volume
   if (s_prev_volume != volume)
     {
@@ -190,6 +201,7 @@ static void page_main_draw_text(void)
       win_put_text_xy(vol_buf, VOL_X + vol.width, VOL_Y, MAX_COL - VOL_X + vol.width);
       s_prev_volume = volume;
     }
+  */
 }
 
 /**************************************************
@@ -199,7 +211,7 @@ static void page_main_draw_text(void)
 ***************************************************/
 // BT RF meter
 static const unsigned char BT_X = 97;
-static const unsigned char BT_Y = 0;
+static const unsigned char BT_Y = 9;
 
 static void page_main_draw_rf(void)
 {
@@ -237,28 +249,40 @@ static void page_main_draw_rf(void)
 ***************************************************/
 // audio meters
 static const unsigned char LR_X = 0;
-static const unsigned char L_Y = 0;
-static const unsigned char R_Y = 8;
+static const unsigned char L_1_Y = 0;
+static const unsigned char R_1_Y = 8;
+static const unsigned char L_2_Y = 32;
+static const unsigned char R_2_Y = 40;
 static const unsigned char AUD_X1 = LR_X + hp_l.width;
-static const unsigned char AUD_X2 = AUD_X1 + 80;
-static const unsigned char AUDL_Y1 = L_Y;
-static const unsigned char AUDL_Y2 = L_Y + hp_l.height - 2;
-static const unsigned char AUDR_Y1 = R_Y;
-static const unsigned char AUDR_Y2 = R_Y + hp_r.height - 2;
+static const unsigned char AUD_X2 = AUD_X1 + AUD_METER_MAX;
+static const unsigned char AUD_1_L_Y1 = L_1_Y;
+static const unsigned char AUD_1_L_Y2 = L_1_Y + hp_l.height - 2;
+static const unsigned char AUD_1_R_Y1 = R_1_Y;
+static const unsigned char AUD_1_R_Y2 = R_1_Y + hp_r.height - 2;
+static const unsigned char AUD_2_L_Y1 = L_2_Y;
+static const unsigned char AUD_2_L_Y2 = L_2_Y + hp_l.height - 2;
+static const unsigned char AUD_2_R_Y1 = R_2_Y;
+static const unsigned char AUD_2_R_Y2 = R_2_Y + hp_r.height - 2;
 
 void page_main_draw_audio(void)
 {
   // draw icons
-  win_put_bmp_xy(LR_X, L_Y, hp_l);
-  win_put_bmp_xy(LR_X, R_Y, hp_r);
+  win_put_bmp_xy(LR_X, L_1_Y, hp_l);
+  win_put_bmp_xy(LR_X, R_1_Y, hp_r);
+  win_put_bmp_xy(LR_X, L_2_Y, hp_l);
+  win_put_bmp_xy(LR_X, R_2_Y, hp_r);
 
   // draw fake audio boxes
-  win_put_box(AUD_X1, AUDL_Y1, AUD_X1 + s_l_audio_meter, AUDL_Y2);
-  win_put_box(AUD_X1, AUDR_Y1, AUD_X1 + s_r_audio_meter, AUDR_Y2);
+  win_put_box(AUD_X1, AUD_1_L_Y1, AUD_X1 + s_l_audio_meter_1, AUD_1_L_Y2);
+  win_put_box(AUD_X1, AUD_1_R_Y1, AUD_X1 + s_r_audio_meter_1, AUD_1_R_Y2);
+  win_put_box(AUD_X1, AUD_2_L_Y1, AUD_X1 + s_l_audio_meter_2, AUD_2_L_Y2);
+  win_put_box(AUD_X1, AUD_2_R_Y1, AUD_X1 + s_r_audio_meter_2, AUD_2_R_Y2);
   // clear old meters
   win_set_inverse(INVERSE_ON);
-  win_put_box(AUD_X1 + s_l_audio_meter + 1, AUDL_Y1, AUD_X2, AUDL_Y2);
-  win_put_box(AUD_X1 + s_r_audio_meter + 1, AUDR_Y1, AUD_X2, AUDR_Y2);
+  win_put_box(AUD_X1 + s_l_audio_meter_1 + 1, AUD_1_L_Y1, AUD_X2, AUD_1_L_Y2);
+  win_put_box(AUD_X1 + s_r_audio_meter_1 + 1, AUD_1_R_Y1, AUD_X2, AUD_1_R_Y2);
+  win_put_box(AUD_X1 + s_l_audio_meter_2 + 1, AUD_2_L_Y1, AUD_X2, AUD_2_L_Y2);
+  win_put_box(AUD_X1 + s_r_audio_meter_2 + 1, AUD_2_R_Y1, AUD_X2, AUD_2_R_Y2);
   win_set_inverse(INVERSE_OFF);
 }
 
@@ -268,18 +292,28 @@ void page_main_draw_audio(void)
   draw battery meter
 ***************************************************/
 // battery meters
-static const unsigned char BATT_TIP_X1 = 119;
-static const unsigned char BATT_TIP_X2 = 123;
+static const unsigned char BATT_TIP_X1 = 85;
+static const unsigned char BATT_TIP_X2 = 89;
+static const unsigned char BATT_X1 = 83;
+static const unsigned char BATT_X2 = 93;
+static const unsigned char BATT_TIP_Y1 = 0;
+static const unsigned char BATT_TIP_Y2 = 2;
+static const unsigned char BATT_TOP_Y1 = 4;
+static const unsigned char BATT_TOP_Y2 = 9;
+static const unsigned char BATT_MID_Y1 = 11;
+static const unsigned char BATT_MID_Y2 = 16;
+static const unsigned char BATT_BOT_Y1 = 18;
+static const unsigned char BATT_BOT_Y2 = 23;
+/*
 static const unsigned char BATT_TIP_Y1 = 40;
 static const unsigned char BATT_TIP_Y2 = 42;
-static const unsigned char BATT_X1 = 116;
-static const unsigned char BATT_X2 = 126;
 static const unsigned char BATT_TOP_Y1 = 44;
 static const unsigned char BATT_TOP_Y2 = 49;
 static const unsigned char BATT_MID_Y1 = 51;
 static const unsigned char BATT_MID_Y2 = 56;
 static const unsigned char BATT_BOT_Y1 = 58;
 static const unsigned char BATT_BOT_Y2 = 63;
+*/
 
 void page_main_draw_batt(void)
 {
@@ -337,10 +371,9 @@ void page_main_draw_batt(void)
 
   update values for all the meters
 ***************************************************/
-static const unsigned char AUDIO_METER_MAX = 80; // 0 - 80
 static const unsigned char RF_METER_MAX = 5; // 0 - 5
 static const unsigned char BATT_METER_MAX = 3; // 0 - 3
-static const unsigned char AUDIO_METER_DELTA = 20;
+static const unsigned char AUDIO_METER_DELTA = 40;
 static const unsigned char RF_METER_DELTA = 4;
 
 void page_main_fake_meters(void)
@@ -348,28 +381,55 @@ void page_main_fake_meters(void)
   static unsigned int s_count = 0;
   static unsigned int s_throttle = 0;
   unsigned int temp = 0;
-  char offset;
+  signed short offset;
 
-  // audio L
+  // audio L 1
   offset = (rand() % AUDIO_METER_DELTA) - (AUDIO_METER_DELTA / 2);
-  s_l_audio_meter += offset;
-  if (s_l_audio_meter > AUDIO_METER_MAX)
-    s_l_audio_meter = AUDIO_METER_MAX;
+  offset = s_l_audio_meter_1 + offset;
+  if (offset < 0)
+    offset = 0;
+  else if (offset > AUD_METER_MAX)
+    offset = AUD_METER_MAX;
+  s_l_audio_meter_1 = offset;
   srand(++s_count);
-  // audio R
+  // audio R 1
   offset = (rand() % AUDIO_METER_DELTA) - (AUDIO_METER_DELTA / 2);
-  s_r_audio_meter += offset;
-  if (s_r_audio_meter > AUDIO_METER_MAX)
-    s_r_audio_meter = AUDIO_METER_MAX;
+  offset = s_r_audio_meter_1 + offset;
+  if (offset < 0)
+    offset = 0;
+  else if (offset > AUD_METER_MAX)
+    offset = AUD_METER_MAX;
+  s_r_audio_meter_1 = offset;
+  srand(++s_count);
+  // audio L 2
+  offset = (rand() % AUDIO_METER_DELTA) - (AUDIO_METER_DELTA / 2);
+  offset = s_l_audio_meter_2 + offset;
+  if (offset < 0)
+    offset = 0;
+  else if (offset > AUD_METER_MAX)
+    offset = AUD_METER_MAX;
+  s_l_audio_meter_2 = offset;
+  srand(++s_count);
+  // audio R 2
+  offset = (rand() % AUDIO_METER_DELTA) - (AUDIO_METER_DELTA / 2);
+  offset = s_r_audio_meter_2 + offset;
+  if (offset < 0)
+    offset = 0;
+  else if (offset > AUD_METER_MAX)
+    offset = AUD_METER_MAX;
+  s_r_audio_meter_2 = offset;
   srand(++s_count);
   
   // rf meter, update less often
   if (!(s_throttle % 20))
     {
       offset = (rand() % RF_METER_DELTA) - (RF_METER_DELTA / 2);
-      s_rf_meter += offset;
-      if (s_rf_meter > RF_METER_MAX)
-	s_rf_meter = RF_METER_MAX;
+      offset = s_rf_meter + offset;
+      if (offset < 0)
+	offset = 0;
+      else if (offset > RF_METER_MAX)
+	offset = RF_METER_MAX;
+      s_rf_meter = offset;
       srand(++s_count);
     }
   // battery meter, update very rarely.. decrease to zero, then repeat
