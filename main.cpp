@@ -5,21 +5,18 @@
 #include "win.h"
 #include "page.h"
 
-EQ eq;
+unsigned char bl_mode;
 unsigned char volume;
-unsigned char anc_lvl;
+unsigned char compat_mode;
 unsigned int tick;
 const unsigned int PAGE_COUNT = 10;
 
 int main(void)
 {
   page_init();
-  eq.mode = DEF_EQ_MODE;
-  eq.bass_lvl = 0;
-  eq.mid_lvl = 0;
-  eq.treb_lvl = 0;
+  bl_mode = DEF_BACKLIGHT_MODE;
   volume = DEF_VOL;
-  anc_lvl = DEF_ANC_LVL;
+  compat_mode = DEF_COMPAT_MODE;
 
   while (1)
     {

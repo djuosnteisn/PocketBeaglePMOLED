@@ -7,9 +7,8 @@
 #include "pages/page_main.h"
 #include "pages/page_menu.h"
 #include "pages/page_contrast.h"
-#include "pages/page_eq.h"
-#include "pages/page_eq_setup.h"
-#include "pages/page_anc_setup.h"
+#include "pages/page_backlight.h"
+#include "pages/page_compat.h"
 #include "pages/page_about.h"
 #include "pages/page_shutdown.h"
 //NOTE temporary
@@ -61,14 +60,11 @@ void page_on_event(pages page, events ev, unsigned char btn)
     case PAGE_MENU:
       page_menu_proc(ev, btn);
       break;
-    case PAGE_EQ:
-      page_eq_proc(ev, btn);
+    case PAGE_BACKLIGHT:
+      page_backlight_proc(ev, btn);
       break;
-    case PAGE_EQ_SETUP:
-      page_eq_setup_proc(ev, btn);
-      break;
-    case PAGE_ANC_SETUP:
-      page_anc_setup_proc(ev, btn);
+    case PAGE_COMPAT:
+      page_compat_setup_proc(ev, btn);
       break;
     case PAGE_CONTRAST:
       page_contrast_proc(ev, btn);

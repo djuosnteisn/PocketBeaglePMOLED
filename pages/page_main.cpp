@@ -131,60 +131,70 @@ void page_main_on_event(unsigned char btn)
 
   draw text objects
 ***************************************************/
-/*
-static const unsigned char SONG_X = 0;
-static const unsigned char SONG_Y = 24;
-static const unsigned char SONG_MAX_WIDTH = 110;
+static const unsigned char RX_TEXT_X = 0;
+static const unsigned char RX_1_TEXT_Y = 0;
+static const unsigned char RX_2_TEXT_Y = 32;
+static const unsigned char RX_TEXT_MAX_WIDTH = 75;
 static const unsigned char SCROLL_DELAY = 5; // 1/4 second
-static const unsigned char EQ_X = 0;
-static const unsigned char EQ_Y = 48;
-static const unsigned char VOL_X = 69;
-static const unsigned char VOL_Y = 48;
-*/
 
 static void page_main_draw_text(void)
 {
-  /*
-  static const char *song_name = "Your Favorite Jam!  ";
-  static unsigned char song_index = 0, str_width;
+  static const char *rx_1_text = "RX1:Slash  Mode:DCH  ";
+  static const char *rx_2_text = "RX2:Axl  Mode:DUET  ";
+  static unsigned char rx_1_index = 0, rx_2_index = 0, str_width;
   static unsigned int scroll_count = 0;
-  static const char *str_eq[] = {"Flat", "Party", "High", "Low", "Rock", "Surr", "Cust"};
-  char vol_buf[4];
   unsigned int temp;
-  */
 
-  /*
   // draw song name, scroll if necessary
   win_set_transparent(TRANS_OFF);
-  if (win_get_str_len(song_name) > SONG_MAX_WIDTH)
+  // RX 1 text
+  if (win_get_str_len(rx_1_text) > RX_TEXT_MAX_WIDTH)
     {
-      if (!(++scroll_count % SCROLL_DELAY))
+      if (!(scroll_count % SCROLL_DELAY))
 	{
-	  char song_str_len = strlen(song_name) - 1; // trim /n
+	  char song_str_len = strlen(rx_1_text) - 1; // trim /n
 	  char temp[song_str_len];
 	  for (unsigned int i = 0; i < song_str_len; i++)
 	    {
-	      if ((song_index + i) > song_str_len)
-		  temp[i] = song_name[i + song_index - (song_str_len + 1)];
+	      if ((rx_1_index + i) > song_str_len)
+		  temp[i] = rx_1_text[i + rx_1_index - (song_str_len + 1)];
 	      else
-		  temp[i] = song_name[i + song_index];
+		  temp[i] = rx_1_text[i + rx_1_index];
 	    }
-	  win_put_text_xy(temp, SONG_X, SONG_Y, SONG_MAX_WIDTH);
-	  if (++song_index >= song_str_len)
-	    song_index = 0;
+	  win_put_text_xy(temp, RX_TEXT_X, RX_1_TEXT_Y, RX_TEXT_MAX_WIDTH);
+	  if (++rx_1_index >= song_str_len)
+	    rx_1_index = 0;
 	}
     }
   else
     {
-      win_put_text_xy(song_name, SONG_X, SONG_Y, SONG_MAX_WIDTH);
+      win_put_text_xy(rx_1_text, RX_TEXT_X, RX_1_TEXT_Y, RX_TEXT_MAX_WIDTH);
     }
-  */
-
-  /*
-  // put eq mode
-  win_put_bmp_xy(EQ_X, EQ_Y, eq_slider);
-  win_put_text_xy(str_eq[eq.mode], EQ_X + eq_slider.width, EQ_Y, MAX_COL - EQ_X + eq_slider.width);
-  */
+  // RX 2 text
+  if (win_get_str_len(rx_2_text) > RX_TEXT_MAX_WIDTH)
+    {
+      if (!(scroll_count % SCROLL_DELAY))
+	{
+	  char song_str_len = strlen(rx_2_text) - 1; // trim /n
+	  char temp[song_str_len];
+	  for (unsigned int i = 0; i < song_str_len; i++)
+	    {
+	      if ((rx_2_index + i) > song_str_len)
+		  temp[i] = rx_2_text[i + rx_2_index - (song_str_len + 1)];
+	      else
+		  temp[i] = rx_2_text[i + rx_2_index];
+	    }
+	  win_put_text_xy(temp, RX_TEXT_X, RX_2_TEXT_Y, RX_TEXT_MAX_WIDTH);
+	  if (++rx_2_index >= song_str_len)
+	    rx_2_index = 0;
+	}
+    }
+  else
+    {
+      win_put_text_xy(rx_2_text, RX_TEXT_X, RX_2_TEXT_Y, RX_TEXT_MAX_WIDTH);
+    }
+  // increment scroll counter
+  scroll_count++;
 }
 
 /**************************************************
@@ -192,9 +202,9 @@ static void page_main_draw_text(void)
 
   draw various RF meters: RSSI, Ant Diversity, etc
 ***************************************************/
-static const unsigned char BT_X = 97;
-static const unsigned char BT_Y_1 = 9;
-static const unsigned char BT_Y_2 = 41;
+static const unsigned char RF_X = 97;
+static const unsigned char RF_Y_1 = 16;
+static const unsigned char RF_Y_2 = 48;
 
 static void page_main_draw_rf(void)
 {
@@ -204,43 +214,43 @@ static void page_main_draw_rf(void)
   switch (s_rf_meter_1)
     {
     case 0:
-      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal0);
+      win_put_bmp_xy(RF_X, RF_Y_1, RFSignal0);
       break;
     case 1:
-      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal1);
+      win_put_bmp_xy(RF_X, RF_Y_1, RFSignal1);
       break;
     case 2:
-      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal2);
+      win_put_bmp_xy(RF_X, RF_Y_1, RFSignal2);
       break;
     case 3:
-      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal3);
+      win_put_bmp_xy(RF_X, RF_Y_1, RFSignal3);
       break;
     case 4:
-      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal4);
+      win_put_bmp_xy(RF_X, RF_Y_1, RFSignal4);
       break;
     case 5:
-      win_put_bmp_xy(BT_X, BT_Y_1, BTSignal5);
+      win_put_bmp_xy(RF_X, RF_Y_1, RFSignal5);
       break;
     }
   switch (s_rf_meter_2)
     {
     case 0:
-      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal0);
+      win_put_bmp_xy(RF_X, RF_Y_2, RFSignal0);
       break;
     case 1:
-      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal1);
+      win_put_bmp_xy(RF_X, RF_Y_2, RFSignal1);
       break;
     case 2:
-      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal2);
+      win_put_bmp_xy(RF_X, RF_Y_2, RFSignal2);
       break;
     case 3:
-      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal3);
+      win_put_bmp_xy(RF_X, RF_Y_2, RFSignal3);
       break;
     case 4:
-      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal4);
+      win_put_bmp_xy(RF_X, RF_Y_2, RFSignal4);
       break;
     case 5:
-      win_put_bmp_xy(BT_X, BT_Y_2, BTSignal5);
+      win_put_bmp_xy(RF_X, RF_Y_2, RFSignal5);
       break;
     }
   win_set_transparent(TRANS_ON);
@@ -253,10 +263,10 @@ static void page_main_draw_rf(void)
 ***************************************************/
 // audio meters
 static const unsigned char LR_X = 0;
-static const unsigned char L_1_Y = 0;
-static const unsigned char R_1_Y = 8;
-static const unsigned char L_2_Y = 32;
-static const unsigned char R_2_Y = 40;
+static const unsigned char L_1_Y = 16;
+static const unsigned char R_1_Y = 24;
+static const unsigned char L_2_Y = 48;
+static const unsigned char R_2_Y = 56;
 static const unsigned char AUD_X1 = LR_X + hp_l.width;
 static const unsigned char AUD_X2 = AUD_X1 + AUD_METER_MAX;
 static const unsigned char AUD_1_L_Y1 = L_1_Y;
@@ -300,22 +310,22 @@ static const unsigned char BATT_TIP_X1 = 86;
 static const unsigned char BATT_TIP_X2 = 90;
 static const unsigned char BATT_X1 = 83;
 static const unsigned char BATT_X2 = 93;
-static const unsigned char BATT_1_TIP_Y1 = 0;
-static const unsigned char BATT_1_TIP_Y2 = 2;
-static const unsigned char BATT_1_TOP_Y1 = 4;
-static const unsigned char BATT_1_TOP_Y2 = 9;
-static const unsigned char BATT_1_MID_Y1 = 11;
-static const unsigned char BATT_1_MID_Y2 = 16;
-static const unsigned char BATT_1_BOT_Y1 = 18;
-static const unsigned char BATT_1_BOT_Y2 = 23;
-static const unsigned char BATT_2_TIP_Y1 = 32;
-static const unsigned char BATT_2_TIP_Y2 = 34;
-static const unsigned char BATT_2_TOP_Y1 = 36;
-static const unsigned char BATT_2_TOP_Y2 = 41;
-static const unsigned char BATT_2_MID_Y1 = 43;
-static const unsigned char BATT_2_MID_Y2 = 48;
-static const unsigned char BATT_2_BOT_Y1 = 50;
-static const unsigned char BATT_2_BOT_Y2 = 55;
+static const unsigned char BATT_1_TIP_Y1 = 8;
+static const unsigned char BATT_1_TIP_Y2 = 10;
+static const unsigned char BATT_1_TOP_Y1 = 12;
+static const unsigned char BATT_1_TOP_Y2 = 17;
+static const unsigned char BATT_1_MID_Y1 = 19;
+static const unsigned char BATT_1_MID_Y2 = 24;
+static const unsigned char BATT_1_BOT_Y1 = 26;
+static const unsigned char BATT_1_BOT_Y2 = 31;
+static const unsigned char BATT_2_TIP_Y1 = 40;
+static const unsigned char BATT_2_TIP_Y2 = 42;
+static const unsigned char BATT_2_TOP_Y1 = 44;
+static const unsigned char BATT_2_TOP_Y2 = 49;
+static const unsigned char BATT_2_MID_Y1 = 51;
+static const unsigned char BATT_2_MID_Y2 = 56;
+static const unsigned char BATT_2_BOT_Y1 = 58;
+static const unsigned char BATT_2_BOT_Y2 = 63;
 
 void page_main_draw_batt(void)
 {

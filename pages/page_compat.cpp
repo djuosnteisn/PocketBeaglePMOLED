@@ -1,8 +1,8 @@
 /*
-  page_eq.c
+  page_compat_setup.c
 */
 
-#include "page_eq.h"
+#include "page_compat.h"
 #include "../main.h"
 #include "../page.h"
 #include "../win.h"
@@ -22,76 +22,76 @@ static unsigned char s_prev_val;
 /*   functions   */
 /*****************/
 
-void page_eq_on_active(void);
-void page_eq_on_refresh(void);
-static void page_eq_on_event(unsigned char btn);
-static void page_eq_draw_title(void);
-static void page_eq_draw_text(void);
+void page_compat_setup_on_active(void);
+void page_compat_setup_on_refresh(void);
+static void page_compat_setup_on_event(unsigned char btn);
+static void page_compat_setup_draw_title(void);
+static void page_compat_setup_draw_text(void);
 
 /**************************************************
-  page_eq_proc
+  page_compat_setup_proc
 
   message processor for page
 ***************************************************/
 
-char page_eq_proc(events ev, unsigned char btn)
+char page_compat_setup_proc(events ev, unsigned char btn)
 {
     switch (ev)
     {
     case EV_PAGE_ACTIVE:
-        page_eq_on_active();
+        page_compat_setup_on_active();
         return 1;
     case EV_REFRESH:
-        page_eq_on_refresh();
+        page_compat_setup_on_refresh();
         return 1;
     case EV_BTN:
-        page_eq_on_event(btn);
+        page_compat_setup_on_event(btn);
         break;
     }
     return 0;
 }
 
 /**************************************************
-  page_eq_on_active
+  page_compat_setup_on_active
 
   handle activation message for page
 ***************************************************/
 
-void page_eq_on_active(void)
+void page_compat_setup_on_active(void)
 {
   // clear the entire screen
   win_clear_screen();
 
   // update variables
-  s_prev_val = eq.mode;
+  s_prev_val = compat_mode;
 
   // update disp
-  page_eq_draw_title();
-  page_eq_draw_text();
+  page_compat_setup_draw_title();
+  page_compat_setup_draw_text();
 }
 
 /**************************************************
-  page_eq_on_refresh
+  page_compat_setup_on_refresh
 
   handle refresh message for page
 ***************************************************/
 
-void page_eq_on_refresh(void)
+void page_compat_setup_on_refresh(void)
 {
-  if (s_prev_val != eq.mode)
+  if (s_prev_val != compat_mode)
     {
-      page_eq_draw_text();
+      page_compat_setup_draw_text();
       //update prev variables
-      s_prev_val = eq.mode;
+      s_prev_val = compat_mode;
     }
 }
 
 /**************************************************
-  page_eq_on_event
+  page_compat_setup_on_event
 
 ***************************************************/
 
-void page_eq_on_event(unsigned char btn)
+void page_compat_setup_on_event(unsigned char btn)
 {
   switch (btn)
     {
@@ -104,27 +104,29 @@ void page_eq_on_event(unsigned char btn)
       break;
       /* up/down buttons */
     case BTN_UP:
-      if (++eq.mode > MAX_EQ_MODE)
-	eq.mode = MIN_EQ_MODE;
+      if (++compat_mode > MAX_COMPAT_MODE)
+	compat_mode = MIN_COMPAT_MODE;
       break;
     case BTN_DN:
-      if (--eq.mode > MAX_EQ_MODE) //unsigned rollover
-	eq.mode = MAX_EQ_MODE;
+      if (--compat_mode > MAX_COMPAT_MODE) //unsigned rollover
+	compat_mode = MAX_COMPAT_MODE;
       break;
     }
 }
 
 /**************************************************
-  page_eq_draw_title
+  page_compat_setup_draw_title
 
   draw title text
 ***************************************************/
 static unsigned char TITLE_X = 64;
-static unsigned char TITLE_Y = 8;
+static unsigned char TITLE_Y = 0;
+static unsigned char TITLE_Y2 = 16;
 
-static void page_eq_draw_title(void)
+static void page_compat_setup_draw_title(void)
 {
-  const char *str_title = "EQ Mode:";
+  const char *str_title = "Compatibility";
+  const char *str_title2 = "Mode";
   unsigned char temp;
 
   /* configure window parameters */
@@ -134,21 +136,23 @@ static void page_eq_draw_title(void)
   // draw title string
   temp = win_get_str_len(str_title);
   win_put_text_xy(str_title, TITLE_X - temp/2, TITLE_Y, temp);
+  temp = win_get_str_len(str_title2);
+  win_put_text_xy(str_title2, TITLE_X - temp/2, TITLE_Y2, temp);
 }
 
 /**************************************************
-  page_eq_draw_text
+  page_compat_setup_draw_text
 
-  draw eq item text
+  draw compat_setup item text
 ***************************************************/
 static const unsigned char VAL_X = 64;
 static const unsigned char VAL_Y  = 40;
 
-static void page_eq_draw_text(void)
+static void page_compat_setup_draw_text(void)
 {
-  //NOTE string array must match enum definition in main.h
+  //NOTE string array must match definition in main.h
   const char *str_val[] =
-    {"Flat Mode", "Party Mode", "High Mode", "Low Mode", "Rock Mode", "Surround", "Custom"};
+    {"DSW", "DCH", "DUET", "HYBRID"};
   unsigned char temp;
 
   /* configure window parameters */
@@ -162,6 +166,6 @@ static void page_eq_draw_text(void)
 
   // draw value text inverted
   win_set_inverse(INVERSE_ON);
-  temp = win_get_str_len(str_val[eq.mode]);
-  win_put_text_xy(str_val[eq.mode], VAL_X - temp/2, VAL_Y, temp);
+  temp = win_get_str_len(str_val[compat_mode]);
+  win_put_text_xy(str_val[compat_mode], VAL_X - temp/2, VAL_Y, temp);
 }

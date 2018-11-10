@@ -28,9 +28,8 @@ enum pages
     PAGE_MAIN,
     PAGE_MENU,
     // menu pages
-    PAGE_EQ,
-    PAGE_EQ_SETUP,
-    PAGE_ANC_SETUP,
+    PAGE_BACKLIGHT,
+    PAGE_COMPAT,
     PAGE_CONTRAST,
     PAGE_ABOUT,
     PAGE_SHUTDOWN,

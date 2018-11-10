@@ -18,16 +18,16 @@ extern "C" {
   } BMP_T;
 
   /* bmp images */
-  const extern BMP_T sc_circle;
+  const extern BMP_T lectro_circle;
   const extern BMP_T sc_name;
   const extern BMP_T hp_l;
   const extern BMP_T hp_r;
-  const extern BMP_T BTSignal0;
-  const extern BMP_T BTSignal1;
-  const extern BMP_T BTSignal2;
-  const extern BMP_T BTSignal3;
-  const extern BMP_T BTSignal4;
-  const extern BMP_T BTSignal5;
+  const extern BMP_T RFSignal0;
+  const extern BMP_T RFSignal1;
+  const extern BMP_T RFSignal2;
+  const extern BMP_T RFSignal3;
+  const extern BMP_T RFSignal4;
+  const extern BMP_T RFSignal5;
   const extern BMP_T eq_slider;
   const extern BMP_T vol;
 

@@ -160,5 +160,5 @@ static const unsigned char BMP_Y = 0;
 
 static void page_contrast_draw_bmp(void)
 {
-  win_put_bmp_xy(BMP_X, BMP_Y, sc_circle);
+  win_put_bmp_xy(BMP_X, BMP_Y, lectro_circle);
 }

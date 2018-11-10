@@ -110,16 +110,16 @@ static unsigned char ROW_3_Y = 40;
 static void page_about_draw_text(void)
 {
   static unsigned int text_counter = 0;
-  const char *str_created_by = "Created By:";
-  const char *str_dustin = "Dustin Jones";
-  const char *str_phone = "(505)480-8217";
+  const char *str_pid = "DSR/EO2";
+  const char *str_sn = "S/N: 1400101";
+  const char *str_band = "Band: A1B1";
 
   win_set_transparent(TRANS_OFF);
   win_set_inverse(INVERSE_OFF);
 
-  win_put_text_xy(str_created_by, 0, ROW_1_Y, MAX_COL);
-  win_put_text_xy(str_dustin, 0, ROW_2_Y, MAX_COL);
-  win_put_text_xy(str_phone, 0, ROW_3_Y, MAX_COL);
+  win_put_text_xy(str_pid, 0, ROW_1_Y, MAX_COL);
+  win_put_text_xy(str_sn, 0, ROW_2_Y, MAX_COL);
+  win_put_text_xy(str_band, 0, ROW_3_Y, MAX_COL);
   
   ++text_counter;
 }
